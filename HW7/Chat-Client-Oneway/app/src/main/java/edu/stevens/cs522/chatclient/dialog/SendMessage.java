@@ -71,10 +71,10 @@ public class SendMessage extends DialogFragment {
         // If not using AlertDialog
         View rootView = inflater.inflate(R.layout.send_message, container, false);
 
-        // TODO initialize the UI.
-
-
-        // End todo
+        destinationAddr = rootView.findViewById(R.id.destination_addr);
+        chatroom = rootView.findViewById(R.id.chat_room);
+        chatName = rootView.findViewById(R.id.chat_name);
+        messageText = rootView.findViewById(R.id.message_text);
 
         Button confirm = (Button) rootView.findViewById(R.id.send);
         confirm.setOnClickListener(confirmListener);
@@ -134,7 +134,7 @@ public class SendMessage extends DialogFragment {
         String message = messageText.getText().toString();
         Log.d(TAG, String.format("...sending \"%s\" to %s as %s....", message, chatroomName, clientName));
 
-        // TODO tell the activity to send the message
+        listener.send(destAddrString, chatroomName, clientName, message);
 
         Log.d(TAG, "...dismissing dialog.");
         SendMessage.this.dismiss();

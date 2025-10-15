@@ -142,25 +142,25 @@ public class ChatServerActivity extends AppCompatActivity implements ChatroomsFr
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        // TODO get shared view model for current chatroom (make sure it is initially null!)
+        sharedViewModel = new ViewModelProvider(this).get(SharedViewModel.class);
 
-
-        // TODO get database reference (for insertions)
+        chatDatabase = ChatDatabase.getInstance(this);
 
 
         isTwoPane = getResources().getBoolean(R.bool.is_two_pane);
         if (isTwoPane) {
-            // TODO In two-pane mode, need to prevent exiting app when a chat room is open (see setChatroom).
-
+            callback = new OnBackPressedCallback(false) {
+                @Override
+                public void handleOnBackPressed() {
+                    setChatroom(null);
+                }
+            };
+            getOnBackPressedDispatcher().addCallback(this, callback);
 
         } else {
-            /*
-             * Add an index fragment as the fragment in the frame layout (single-pane layout)
-             */
             getSupportFragmentManager()
                     .beginTransaction()
                     .add(R.id.fragment, new ChatroomsFragment(),SHOWING_CHATROOMS_TAG)
-                    // Don't add this (why not?): .addToBackStack(SHOWING_CHATROOMS_TAG)
                     .commit();
         }
         
@@ -250,15 +250,9 @@ public class ChatServerActivity extends AppCompatActivity implements ChatroomsFr
             message.latitude = latitude;
             message.longitude = longitude;
 
-            /*
-			 * TODO upsert chatroom and peer, and insert message into the database
-			 */
-
-            /*
-             * End TODO
-             *
-             * The livedata for the messages should update via observer automatically.
-             */
+            chatDatabase.chatroomDao().insert(chatroom);
+            chatDatabase.peerDao().upsert(peer);
+            chatDatabase.messageDao().persist(message);
 
             /*
              * Let the user know which chatroom received a message.
@@ -301,9 +295,8 @@ public class ChatServerActivity extends AppCompatActivity implements ChatroomsFr
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         super.onCreateOptionsMenu(menu);
-        // TODO inflate a menu with PEERS option
-
-
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.chatserver_menu, menu);
         return true;
     }
 
@@ -312,9 +305,8 @@ public class ChatServerActivity extends AppCompatActivity implements ChatroomsFr
         super.onOptionsItemSelected(item);
         int itemId = item.getItemId();
         if (itemId == R.id.peers) {
-            // TODO PEERS provide the UI for viewing list of peers
-            // The subactivity will query the database for the list of peers.
-
+            Intent intent = new Intent(this, ViewPeersActivity.class);
+            startActivity(intent);
             return true;
 
         }
@@ -330,12 +322,18 @@ public class ChatServerActivity extends AppCompatActivity implements ChatroomsFr
     public void setChatroom(Chatroom chatroom) {
         sharedViewModel.select(chatroom);
         if (isTwoPane) {
-            // TODO for two pane, enable Back callback if we are entering a chatroom
-
+            // For two pane, enable Back callback if we are entering a chatroom
+            if (callback != null) {
+                callback.setEnabled(chatroom != null);
+            }
         } else {
-            // TODO For single pane, replace chatrooms fragment with messages fragment.
+            // For single pane, replace chatrooms fragment with messages fragment.
             // Add chatrooms fragment to backstack, so pressing BACK key will return to index.
-
+            getSupportFragmentManager()
+                    .beginTransaction()
+                    .replace(R.id.fragment, new MessagesFragment(), SHOWING_MESSAGES_TAG)
+                    .addToBackStack(SHOWING_CHATROOMS_TAG)
+                    .commit();
         }
     }
 

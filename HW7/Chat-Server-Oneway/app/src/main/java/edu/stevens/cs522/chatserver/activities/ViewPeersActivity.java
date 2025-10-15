@@ -25,10 +25,6 @@ import edu.stevens.cs522.chatserver.viewmodels.PeersViewModel;
 
 public class ViewPeersActivity extends FragmentActivity implements TextAdapter.OnItemClickListener<Peer> {
 
-    /*
-     * TODO See ChatServer for example of what to do, query peers database instead of messages database.
-     */
-
     private TextAdapter<Peer> peerAdapter;
 
     @Override
@@ -50,10 +46,13 @@ public class ViewPeersActivity extends FragmentActivity implements TextAdapter.O
         peerAdapter = new TextAdapter<>(peersList, this);
         peersList.setAdapter(peerAdapter);
 
-        // TODO create the view model and query for a list of all peers
-
-
-        // TODO observer for list of peers updates the peer adapter
+        PeersViewModel peersViewModel = new ViewModelProvider(this).get(PeersViewModel.class);
+        
+        LiveData<List<Peer>> peers = peersViewModel.fetchAllPeers();
+        peers.observe(this, peerList -> {
+            peerAdapter.setDataset(peerList);
+            peerAdapter.notifyDataSetChanged();
+        });
 
     }
 

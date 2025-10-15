@@ -67,13 +67,11 @@ public abstract class MessageAdapter extends RecyclerView.Adapter<MessageAdapter
         return new ViewHolder(view);
     }
 
-    // Replace the contents of a view (invoked by the layout manager)
     @Override
     public void onBindViewHolder(ViewHolder viewHolder, final int position) {
-
-        // TODO set the fields of the view for the message
-        // Use getHeading() to get the heading in the message
-
+        Message message = messages.get(position);
+        viewHolder.setMetadata(getHeading(message));
+        viewHolder.setMessage(message.messageText);
     }
 
     // Return the size of your dataset (invoked by the layout manager)
