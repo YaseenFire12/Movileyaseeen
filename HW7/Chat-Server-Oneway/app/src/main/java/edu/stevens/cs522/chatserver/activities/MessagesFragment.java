@@ -25,6 +25,7 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.LiveData;
+import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -71,6 +72,9 @@ public class MessagesFragment extends Fragment implements OnClickListener {
     private MessageAdapter messagesAdapter;
 
     private LiveData<List<Message>> messages;
+
+    private Observer<List<Message>> messagesObserver;
+
 
 
     public MessagesFragment() {
