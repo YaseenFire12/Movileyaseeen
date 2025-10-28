@@ -50,7 +50,9 @@ import edu.stevens.cs522.chat.services.PostMessageResultReceiver;
 import edu.stevens.cs522.chat.settings.Settings;
 import edu.stevens.cs522.chat.viewmodels.SharedViewModel;
 
-public class ChatActivity extends AppCompatActivity implements ChatroomsFragment.IChatroomListener, MessagesFragment.IChatListener, SendMessage.IMessageSender, ServiceConnection, PostMessageResultReceiver.IReceive {
+public class ChatActivity extends AppCompatActivity
+        implements ChatroomsFragment.IChatroomListener, MessagesFragment.IChatListener, SendMessage.IMessageSender,
+        ServiceConnection, PostMessageResultReceiver.IReceive {
 
     /*
      * We are using AppCompat to support Floating Action Button.
@@ -77,6 +79,7 @@ public class ChatActivity extends AppCompatActivity implements ChatroomsFragment
      */
     private SharedViewModel sharedViewModel;
 
+
     /*
      * Reference to the service, for sending a message
      */
@@ -99,13 +102,12 @@ public class ChatActivity extends AppCompatActivity implements ChatroomsFragment
      */
     private OnBackPressedCallback callback;
 
-
     /*
-	 * Called when the activity is first created. 
-	 */
-	@Override
-	public void onCreate(Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);
+     * Called when the activity is first created.
+     */
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
 
         /*
          * Initialize the UI with the index and details fragments
@@ -123,42 +125,55 @@ public class ChatActivity extends AppCompatActivity implements ChatroomsFragment
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        // TODO get shared view model for current chatroom (make sure it is initially null!)
+        sharedViewModel = new ViewModelProvider(this).get(SharedViewModel.class);
+        sharedViewModel.select(null); // Initially no chatroom selected
 
+        sendResultReceiver = new PostMessageResultReceiver(
+                new Handler(Looper.getMainLooper()),
+                this,
+                this);
 
-        // TODO initialize sendResultReceiver (for receiving notification of message sent)
-
-        // TODO initiate binding to the service
-
+        Intent bindIntent = new Intent(this, ChatService.class);
+        bindService(bindIntent, this, BIND_AUTO_CREATE);
 
         // Only used to insert a chatroom
         chatroomDao = ChatDatabase.getInstance(getApplicationContext()).chatroomDao();
 
         isTwoPane = getResources().getBoolean(R.bool.is_two_pane);
         if (isTwoPane) {
-            // TODO In two-pane mode, need to prevent exiting app when a chat room is open (see setChatroom).
-
+            callback = new OnBackPressedCallback(false) {
+                @Override
+                public void handleOnBackPressed() {
+                    sharedViewModel.select(null);
+                    setEnabled(false);
+                }
+            };
+            getOnBackPressedDispatcher().addCallback(this, callback);
         } else {
-            // Add an index fragment as the fragment in the frame layout (single-pane layout)
+            // Add an index fragment as the fragment in the frame layout (single-pane
+            // layout)
             getSupportFragmentManager()
                     .beginTransaction()
-                    .add(R.id.fragment, new ChatroomsFragment(),SHOWING_CHATROOMS_TAG)
+                    .add(R.id.fragment, new ChatroomsFragment(), SHOWING_CHATROOMS_TAG)
                     // Don't add this (why not?): .addToBackStack(SHOWING_CHATROOMS_TAG)
                     .commit();
         }
-	}
+    }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
-        // TODO unbind the service
+        // Unbind the service
+        if (chatService != null) {
+            unbindService(this);
+        }
     }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         super.onCreateOptionsMenu(menu);
-        // TODO inflate a menu with PEERS options
-
+        // Inflate a menu with PEERS options
+        getMenuInflater().inflate(R.menu.chat_menu, menu);
         return true;
     }
 
@@ -173,8 +188,8 @@ public class ChatActivity extends AppCompatActivity implements ChatroomsFragment
             return true;
 
         } else if (itemId == R.id.peers) {
-            // TODO PEERS: provide the UI for viewing list of peers
-
+            Intent intent = new Intent(this, ViewPeersActivity.class);
+            startActivity(intent);
             return true;
 
         }
@@ -216,7 +231,9 @@ public class ChatActivity extends AppCompatActivity implements ChatroomsFragment
 
             CurrentLocation location = CurrentLocation.getLocation(this);
 
-            // TODO use chatService to send the message
+            chatService.send(destinationAddr, chatroomName, text,
+                    timestamp, location.getLatitude(), location.getLongitude(),
+                    sendResultReceiver);
 
             Log.i(TAG, "Sent message: " + text);
 
@@ -230,10 +247,12 @@ public class ChatActivity extends AppCompatActivity implements ChatroomsFragment
     public void onReceiveResult(int resultCode, Bundle data) {
         switch (resultCode) {
             case RESULT_OK:
-                // TODO show a success toast message
+                // Show a success toast message
+                Toast.makeText(this, "Message sent successfully!", Toast.LENGTH_SHORT).show();
                 break;
             default:
-                // TODO show a failure toast message
+                // Show a failure toast message
+                Toast.makeText(this, "Failed to send message!", Toast.LENGTH_SHORT).show();
                 break;
         }
     }
@@ -254,25 +273,37 @@ public class ChatActivity extends AppCompatActivity implements ChatroomsFragment
     /**
      * Called by the ChatroomsFragment when a chatroom is selected.
      *
-     * For two-pane UI, do nothing, but for single-pane, need to push the detail fragment.
+     * For two-pane UI, do nothing, but for single-pane, need to push the detail
+     * fragment.
      */
     public void setChatroom(Chatroom chatroom) {
         sharedViewModel.select(chatroom);
         if (isTwoPane) {
-            // TODO for two pane, enable Back callback if we are entering a chatroom
+            // For two pane, enable Back callback if we are entering a chatroom
+            if (callback != null && chatroom != null) {
+                callback.setEnabled(true);
+            }
 
         } else {
-            // TODO For single pane, replace chatrooms fragment with messages fragment.
-            // Add chatrooms fragment to backstack, so pressing BACK key will return to index.
-
+            // For single pane, replace chatrooms fragment with messages fragment.
+            // Add chatrooms fragment to backstack, so pressing BACK key will return to
+            // index.
+            if (chatroom != null) {
+                getSupportFragmentManager()
+                        .beginTransaction()
+                        .replace(R.id.fragment, new MessagesFragment(), SHOWING_MESSAGES_TAG)
+                        .addToBackStack(SHOWING_CHATROOMS_TAG)
+                        .commit();
+            }
         }
     }
 
     @Override
     public void onServiceConnected(ComponentName name, IBinder binder) {
         Log.d(TAG, "Connected to the chat service.");
-        // TODO initialize chatService
-
+        // Initialize chatService
+        ChatService.ChatBinder chatBinder = (ChatService.ChatBinder) binder;
+        chatService = chatBinder.getService();
     }
 
     @Override

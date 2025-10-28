@@ -58,9 +58,14 @@ public class ViewPeerActivity extends FragmentActivity {
             throw new IllegalArgumentException("Expected peer id as intent extra");
         }
 
-        // TODO Set the fields of the UI
+        TextView nameView = findViewById(R.id.view_user_name);
+        nameView.setText(getString(R.string.view_user_name, peer.name));
 
-        // End TODO
+        TextView timestampView = findViewById(R.id.view_timestamp);
+        timestampView.setText(getString(R.string.view_timestamp, formatTimestamp(peer.timestamp)));
+
+        TextView locationView = findViewById(R.id.view_location);
+        locationView.setText(getString(R.string.view_location, peer.latitude, peer.longitude));
 
         // Initialize the recyclerview and adapter for messages
         RecyclerView messageList = findViewById(R.id.message_list);
@@ -69,11 +74,12 @@ public class ViewPeerActivity extends FragmentActivity {
         messagesAdapter = new MessageChatroomAdapter();
         messageList.setAdapter(messagesAdapter);
 
-        // TODO open the view model
+        PeerViewModel peerViewModel = new ViewModelProvider(this).get(PeerViewModel.class);
 
-        // TODO query the database asynchronously, and use messagesAdapter to display the result
-
-
+        peerViewModel.fetchMessagesFromPeer(peer).observe(this, messages -> {
+            messagesAdapter.setMessages(messages);
+            messagesAdapter.notifyDataSetChanged();
+        });
 
     }
 

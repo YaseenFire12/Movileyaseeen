@@ -33,13 +33,11 @@ import edu.stevens.cs522.chat.entities.Peer;
 import edu.stevens.cs522.chat.entities.TimestampConverter;
 import edu.stevens.cs522.chat.settings.Settings;
 
-
 public class ChatService extends Service implements IChatService {
 
     protected static final String TAG = ChatService.class.getCanonicalName();
 
     protected static final String SEND_TAG = "ChatSendThread";
-
 
     public final static String SENDER_NAME = "name";
 
@@ -52,7 +50,6 @@ public class ChatService extends Service implements IChatService {
     public final static String LATITUDE = "latitude";
 
     public final static String LONGITUDE = "longitude";
-
 
     protected IBinder binder = new ChatBinder();
 
@@ -85,9 +82,9 @@ public class ChatService extends Service implements IChatService {
             throw new IllegalStateException("Unable to init client socket.", e);
         }
 
-        // TODO initialize the thread that sends messages
-
-        // end TODO
+        HandlerThread sendThread = new HandlerThread(SEND_TAG, Process.THREAD_PRIORITY_BACKGROUND);
+        sendThread.start();
+        sendHandler = new SendHandler(sendThread.getLooper());
 
         receiveThread = new Thread(new ReceiverThread());
         receiveThread.start();
@@ -96,7 +93,7 @@ public class ChatService extends Service implements IChatService {
     @Override
     public void onDestroy() {
         finished = true;
-        sendHandler.getLooper().getThread().interrupt();  // No-op?
+        sendHandler.getLooper().getThread().interrupt(); // No-op?
         sendHandler.getLooper().quit();
         socketOK = false;
         receiveThread.interrupt();
@@ -120,12 +117,21 @@ public class ChatService extends Service implements IChatService {
 
     @Override
     public void send(String destAddress, String chatRoom, String messageText,
-                     Instant timestamp, double latitude, double longitude, ResultReceiver receiver) {
+            Instant timestamp, double latitude, double longitude, ResultReceiver receiver) {
         android.os.Message message = sendHandler.obtainMessage();
-        // TODO send the message to the sending thread (add a bundle with params)
+
+        Bundle data = new Bundle();
+        data.putString(SendHandler.HDLR_DEST_ADDRESS, destAddress);
+        data.putString(SendHandler.HDLR_CHATROOM, chatRoom);
+        data.putString(SendHandler.HDLR_MESSAGE_TEXT, messageText);
+        data.putString(SendHandler.HDLR_TIMESTAMP, TimestampConverter.serialize(timestamp));
+        data.putDouble(SendHandler.HDLR_LATITUDE, latitude);
+        data.putDouble(SendHandler.HDLR_LONGITUDE, longitude);
+        data.putParcelable(SendHandler.HDLR_RECEIVER, receiver);
+        message.setData(data);
+        sendHandler.sendMessage(message);
 
     }
-
 
     private final class SendHandler extends Handler {
 
@@ -165,11 +171,13 @@ public class ChatService extends Service implements IChatService {
 
                 Bundle data = message.getData();
 
-                // TODO get data from message (including result receiver)
-
-
-
-                // End todo
+                destinationAddr = data.getString(HDLR_DEST_ADDRESS);
+                chatRoom = data.getString(HDLR_CHATROOM);
+                messageText = data.getString(HDLR_MESSAGE_TEXT);
+                timestamp = TimestampConverter.deserialize(data.getString(HDLR_TIMESTAMP));
+                latitude = data.getDouble(HDLR_LATITUDE);
+                longitude = data.getDouble(HDLR_LONGITUDE);
+                receiver = data.getParcelable(HDLR_RECEIVER);
 
                 /*
                  * Insert into the local database
@@ -315,11 +323,9 @@ public class ChatService extends Service implements IChatService {
                     message.latitude = latitude;
                     message.longitude = longitude;
 
-                    /*
-                     * TODO upsert chatroom and peer, and insert message into the database
-                     */
-
-
+                    chatDatabase.chatroomDao().insert(chatroom);
+                    chatDatabase.peerDao().upsert(peer);
+                    chatDatabase.messageDao().persist(message);
 
                 } catch (Exception e) {
 
