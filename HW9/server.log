@@ -1,0 +1,12 @@
+Nov 05, 2025 1:19:52 PM edu.stevens.cs522.chat.webservice.Main info
+INFO: Starting HTTP server...
+Nov 05, 2025 1:19:53 PM org.glassfish.jersey.server.wadl.WadlFeature configure
+WARNING: JAXBContext implementation could not be found. WADL feature is disabled.
+Nov 05, 2025 1:19:53 PM org.glassfish.grizzly.http.server.NetworkListener start
+INFO: Started listener bound to [10.156.123.159:8080]
+Nov 05, 2025 1:19:53 PM org.glassfish.grizzly.http.server.HttpServer start
+INFO: [HttpServer] Started.
+Nov 05, 2025 1:19:53 PM edu.stevens.cs522.chat.webservice.Main info
+INFO: HTTP service available at http://10.156.123.159:8080...
+Nov 05, 2025 1:19:53 PM edu.stevens.cs522.chat.webservice.Main info
+INFO: Hit enter to stop...
