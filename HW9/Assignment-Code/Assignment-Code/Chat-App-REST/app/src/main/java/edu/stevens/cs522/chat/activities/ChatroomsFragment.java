@@ -26,18 +26,21 @@ import edu.stevens.cs522.chat.entities.Chatroom;
 import edu.stevens.cs522.chat.ui.TextAdapter;
 import edu.stevens.cs522.chat.viewmodels.ChatroomViewModel;
 
-public class ChatroomsFragment extends Fragment implements View.OnClickListener, TextAdapter.OnItemClickListener<Chatroom> {
+public class ChatroomsFragment extends Fragment
+        implements View.OnClickListener, TextAdapter.OnItemClickListener<Chatroom> {
 
     @SuppressWarnings("unused")
     private final static String TAG = ChatroomsFragment.class.getCanonicalName();
 
     /**
-     * The serialization (saved instance state) Bundle key representing the activated item position. Only used on tablets.
+     * The serialization (saved instance state) Bundle key representing the
+     * activated item position. Only used on tablets.
      */
     private static final String STATE_ACTIVATED_POSITION = "activated_position";
 
     public interface IChatroomListener {
         void addChatroom(String chatroomName);
+
         void setChatroom(Chatroom chatroom);
     }
 
@@ -56,7 +59,8 @@ public class ChatroomsFragment extends Fragment implements View.OnClickListener,
     private int activatedPosition = ListView.INVALID_POSITION;
 
     /**
-     * Mandatory empty constructor for the fragment manager to instantiate the fragment (e.g. upon screen orientation changes).
+     * Mandatory empty constructor for the fragment manager to instantiate the
+     * fragment (e.g. upon screen orientation changes).
      */
     public ChatroomsFragment() {
     }
@@ -83,9 +87,8 @@ public class ChatroomsFragment extends Fragment implements View.OnClickListener,
         RecyclerView chatroomList = rootView.findViewById(R.id.chatroom_list);
         chatroomList.setLayoutManager(new LinearLayoutManager(requireActivity()));
 
-        // TODO Initialize the recyclerview and adapter for messages
-
-
+        chatroomsAdapter = new TextAdapter<>(chatroomList, this);
+        chatroomList.setAdapter(chatroomsAdapter);
         chatroomName = rootView.findViewById(R.id.chatroom_add_text);
 
         Button chatroomButton = rootView.findViewById(R.id.chatroom_add_button);
@@ -103,11 +106,13 @@ public class ChatroomsFragment extends Fragment implements View.OnClickListener,
         if (savedInstanceState != null && savedInstanceState.containsKey(STATE_ACTIVATED_POSITION)) {
             setActivatedPosition(savedInstanceState.getInt(STATE_ACTIVATED_POSITION));
         }
+        chatroomViewModel = new ViewModelProvider(requireActivity()).get(ChatroomViewModel.class);
 
-        // TODO initialize the chatroom view model
-
-
-        // TODO query the database asynchronously, and use messagesAdapter to display the result
+        LiveData<List<Chatroom>> chatrooms = chatroomViewModel.fetchAllChatrooms();
+        chatrooms.observe(getViewLifecycleOwner(), chatroomList -> {
+            chatroomsAdapter.setDataset(chatroomList);
+            chatroomsAdapter.notifyDataSetChanged();
+        });
 
     }
 
@@ -131,15 +136,14 @@ public class ChatroomsFragment extends Fragment implements View.OnClickListener,
             return;
         }
 
-        // TODO request the activity to add the chatroom to the database
-
+        listener.addChatroom(chatroomName.getText().toString());
         chatroomName.setText("");
     }
 
     @Override
     public void onItemClick(RecyclerView parent, View view, int position, Chatroom chatroom) {
         setActivatedPosition(position);
-        // TODO ask the activity to respond to the selection (in single-pane layout, it will push detail fragment)
+        listener.setChatroom(chatroom);
     }
 
     @Override

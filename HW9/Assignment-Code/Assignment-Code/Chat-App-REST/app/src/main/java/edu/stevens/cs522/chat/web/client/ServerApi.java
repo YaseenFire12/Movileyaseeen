@@ -9,15 +9,14 @@ import retrofit2.http.Query;
 
 /*
  * The API for the chat server.
- *
- * TODO annotate the methods with HTTP operations and context paths
  */
 public interface ServerApi {
 
     public final static String CHAT_NAME = "chat-name";
 
-    public Call<Void> register(String chatName);
+    @POST("chat")
+    public Call<Void> register(@Query(CHAT_NAME) String chatName);
 
-    public Call<Void> postMessage(String chatName, Message chatMessage);
-
+    @POST("chat/{chatName}")
+    public Call<Void> postMessage(@Path("chatName") String chatName, @Body Message chatMessage);
 }

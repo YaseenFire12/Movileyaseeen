@@ -53,8 +53,6 @@ public class RestMethod {
 
     public static final Charset CHARSET = StandardCharsets.UTF_8;
 
-
-
     /*
      * HTTP Request headers
      */
@@ -76,7 +74,6 @@ public class RestMethod {
      */
     public final static int SERVICE_DURATION = 5000;
 
-
     /*
      * HTTP response
      */
@@ -86,7 +83,6 @@ public class RestMethod {
 
     private final Gson gson;
 
-
     public RestMethod(Context context) {
         this.context = context;
         /*
@@ -94,8 +90,8 @@ public class RestMethod {
          */
         GsonBuilder gsonBuilder = new GsonBuilder();
         gsonBuilder.registerTypeAdapter(Instant.class, new TimestampSerializer())
-                   .registerTypeAdapter(UUID.class, new UUIDSerializer())
-                   .setExclusionStrategies(new ExcludeStrategy());
+                .registerTypeAdapter(UUID.class, new UUIDSerializer())
+                .setExclusionStrategies(new ExcludeStrategy());
         this.gson = gsonBuilder.create();
     }
 
@@ -115,26 +111,27 @@ public class RestMethod {
         builder.interceptors().add(interceptor);
         OkHttpClient client = builder.build();
 
-        /*
-         * TODO Wrap the okhttp client with a retrofit stub factory.
-         */
-        return null;
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl(serverUri.toString())
+                .client(client)
+                .addConverterFactory(GsonConverterFactory.create(gson))
+                .build();
+
+        return retrofit.create(ServerApi.class);
     }
 
-
     public ChatServiceResponse perform(RegisterRequest request) {
-//        try {
+        try {
             Log.d(TAG, "Performing REST method for registration....");
             ServerApi server = createClient(request.registerUrl, request);
-            Response<Void> response = null;
-            // TODO execute the Web service call
-
+            Call<Void> call = server.register(request.chatName);
+            Response<Void> response = call.execute();
 
             if (response.isSuccessful()) {
-                Log.d(TAG, "Received positive response from the server: "+response.code());
+                Log.d(TAG, "Received positive response from the server: " + response.code());
                 return request.getResponse();
             } else {
-                Log.d(TAG, "Received negative response from the server: "+response.code());
+                Log.d(TAG, "Received negative response from the server: " + response.code());
                 ErrorResponse errorResponse = new ErrorResponse();
                 errorResponse.responseCode = response.code();
                 errorResponse.responseMessage = response.message();
@@ -142,14 +139,14 @@ public class RestMethod {
                 return errorResponse;
             }
 
-//        } catch (IOException e) {
-//            Log.e(TAG, "Registration: Web service error.", e);
-//            ErrorResponse errorResponse = new ErrorResponse();
-//            errorResponse.responseCode = UNAVAILABLE_CODE;
-//            errorResponse.responseMessage = UNAVAILABLE_MESSAGE;
-//            errorResponse.errorMessage = e.getMessage();
-//            return errorResponse;
-//        }
+        } catch (IOException e) {
+            Log.e(TAG, "Registration: Web service error.", e);
+            ErrorResponse errorResponse = new ErrorResponse();
+            errorResponse.responseCode = UNAVAILABLE_CODE;
+            errorResponse.responseMessage = UNAVAILABLE_MESSAGE;
+            errorResponse.errorMessage = e.getMessage();
+            return errorResponse;
+        }
     }
 
     /*
@@ -157,23 +154,29 @@ public class RestMethod {
      */
 
     public ChatServiceResponse perform(PostMessageRequest request) {
-//        try {
+        try {
             ServerApi server = createClient(Objects.requireNonNull(Settings.getServerUri(context)), request);
-            Log.d(TAG, String.format("Uploading \"%s\" in chatroom %s", request.message.messageText, request.message.chatroom));
+            Log.d(TAG, String.format("Uploading \"%s\" in chatroom %s", request.message.messageText,
+                    request.message.chatroom));
 
-            Response<Void> response = null;
-            // TODO execute the Web service call
-
+            Call<Void> call = server.postMessage(request.chatName, request.message);
+            Response<Void> response = call.execute();
 
             if (response.isSuccessful()) {
-                Log.d(TAG, "Received positive response from the server: "+response.code());
+                Log.d(TAG, "Received positive response from the server: " + response.code());
                 PostMessageResponse postMessageResponse = (PostMessageResponse) request.getResponse();
-                // TODO return the globally unique sequence number assigned by the server to this message
 
-
+                String location = response.headers().get(LOCATION_HEADER);
+                if (location != null) {
+                    Uri locationUri = Uri.parse(location);
+                    String seqNumStr = locationUri.getLastPathSegment();
+                    if (seqNumStr != null) {
+                        postMessageResponse.setMessageId(Long.parseLong(seqNumStr));
+                    }
+                }
                 return postMessageResponse;
             } else {
-                Log.d(TAG, "Received negative response from the server: "+response.code());
+                Log.d(TAG, "Received negative response from the server: " + response.code());
                 ErrorResponse errorResponse = new ErrorResponse();
                 errorResponse.responseCode = response.code();
                 errorResponse.responseMessage = response.message();
@@ -181,19 +184,19 @@ public class RestMethod {
                 return errorResponse;
             }
 
-//        } catch (IOException e) {
-//            Log.e(TAG, "Posting message: Web service error.", e);
-//            ErrorResponse errorResponse = new ErrorResponse();
-//            errorResponse.responseCode = UNAVAILABLE_CODE;
-//            errorResponse.responseMessage = UNAVAILABLE_MESSAGE;
-//            errorResponse.errorMessage = e.getMessage();
-//            return errorResponse;
-//        }
+        } catch (IOException e) {
+            Log.e(TAG, "Posting message: Web service error.", e);
+            ErrorResponse errorResponse = new ErrorResponse();
+            errorResponse.responseCode = UNAVAILABLE_CODE;
+            errorResponse.responseMessage = UNAVAILABLE_MESSAGE;
+            errorResponse.errorMessage = e.getMessage();
+            return errorResponse;
+        }
     }
 
-
     /**
-     * Build and return a user-agent string that can identify this application to remote servers. Contains the package
+     * Build and return a user-agent string that can identify this application to
+     * remote servers. Contains the package
      * name and version code.
      */
     private static String buildUserAgent(Context context) {

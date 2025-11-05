@@ -87,8 +87,10 @@ public class TextAdapter<T> extends RecyclerView.Adapter<TextAdapter<T>.ViewHold
             selected = position;
             notifyItemChanged(position);
 
-            // TODO invoke the listener
-
+            if (listener != null) {
+                T item = dataset.get(position);
+                listener.onItemClick(recyclerView, v, position, item);
+            }
         }
     }
 
@@ -104,7 +106,8 @@ public class TextAdapter<T> extends RecyclerView.Adapter<TextAdapter<T>.ViewHold
     /*
      * Create new views (invoked by the layout manager)
      */
-    @Override @NonNull
+    @Override
+    @NonNull
     public ViewHolder onCreateViewHolder(ViewGroup viewGroup, int viewType) {
         // Selected or otherwise list item
         final int layout = (viewType == TYPE_INACTIVE) ? R.layout.item_inactive : R.layout.item_active;
@@ -142,4 +145,3 @@ public class TextAdapter<T> extends RecyclerView.Adapter<TextAdapter<T>.ViewHold
     }
 
 }
-

@@ -67,7 +67,7 @@ public class RegisterActivity extends FragmentActivity implements OnClickListene
             return insets;
         });
 
-        // TODO instantiate helper for service (remember to use static context!)
+        helper = new ChatHelper(getApplicationContext());
 
         serverUriText = (EditText) findViewById(R.id.chat_server_text);
         serverUriText.setText(getString(R.string.server_uri_default));
@@ -107,7 +107,7 @@ public class RegisterActivity extends FragmentActivity implements OnClickListene
             if (!serverAddress.endsWith("/")) {
                 serverAddress += "/";
             }
-            Log.d(TAG, "Registering with server URI: "+serverAddress);
+            Log.d(TAG, "Registering with server URI: " + serverAddress);
 
             Uri serverUri = Uri.parse(serverUriText.getText().toString()).normalizeScheme();
 
@@ -116,9 +116,10 @@ public class RegisterActivity extends FragmentActivity implements OnClickListene
                 Log.d(TAG, "Empty chat name for registration!");
                 return;
             }
-            Log.d(TAG, "Registering with chat name: "+userName);
+            Log.d(TAG, "Registering with chat name: " + userName);
 
-            // TODO use helper to register
+            helper.register(serverUri, userName);
+            finish();
 
         } else {
 

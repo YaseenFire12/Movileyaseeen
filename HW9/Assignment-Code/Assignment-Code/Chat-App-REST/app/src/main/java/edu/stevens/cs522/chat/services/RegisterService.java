@@ -30,7 +30,8 @@ import edu.stevens.cs522.chat.web.request.ChatServiceResponse;
 import edu.stevens.cs522.chat.web.request.RegisterRequest;
 
 /**
- * A service for handling asynchronous task requests on a separate handler thread.
+ * A service for handling asynchronous task requests on a separate handler
+ * thread.
  */
 public class RegisterService extends Service {
 
@@ -52,7 +53,8 @@ public class RegisterService extends Service {
     // Main thread, for post-processing after registration Web service call ends
     protected Handler mainLoop;
 
-    // Notification channels allow users to block some notifications at their discretion.
+    // Notification channels allow users to block some notifications at their
+    // discretion.
     protected String channelId;
 
     // Remember the id of the notification, for updates of status of registration.
@@ -89,7 +91,8 @@ public class RegisterService extends Service {
     @Override
     public int onStartCommand(@NonNull Intent intent, int flags, final int startId) {
         /*
-         * Check if the service is already running and the user wants to cancel registration.
+         * Check if the service is already running and the user wants to cancel
+         * registration.
          */
         String action = intent.getAction();
         if (action == null) {
@@ -104,39 +107,46 @@ public class RegisterService extends Service {
         }
 
         if (!ACTION_REGISTER.equals(action)) {
-            throw new IllegalArgumentException("Unrecognized action for registration service intent: "+action);
+            throw new IllegalArgumentException("Unrecognized action for registration service intent: " + action);
         }
 
         /*
-         * Create the notification that will show while registration Web service call is processing.
+         * Create the notification that will show while registration Web service call is
+         * processing.
          */
-        Notification.Builder notificationBuilder =
-                createNotificationBuilder()
-                        .setContentText(getText(R.string.register_notification_message))
-                        .setTicker(getText(R.string.register_ticker_text));
+        Notification.Builder notificationBuilder = createNotificationBuilder()
+                .setContentText(getText(R.string.register_notification_message))
+                .setTicker(getText(R.string.register_ticker_text));
 
         /*
          * Pending intent gives the system the ability to launch the specified activity
-         * if the notification for the service is tapped.  In this case, go back to the
+         * if the notification for the service is tapped. In this case, go back to the
          * registration activity.
          */
         Intent activityIntent = new Intent(this, RegisterActivity.class);
-        PendingIntent pendingActivityIntent =
-                PendingIntent.getActivity(this, 0, activityIntent, PendingIntent.FLAG_IMMUTABLE);
+        PendingIntent pendingActivityIntent = PendingIntent.getActivity(this, 0, activityIntent,
+                PendingIntent.FLAG_IMMUTABLE);
         notificationBuilder.setContentIntent(pendingActivityIntent);
 
-        /*
-         * TODO Add a CANCEL button to the notification: Send intent with ACTION_CANCEL to the service.
-         * https://developer.android.com/reference/android/app/Notification.Builder#addAction(android.app.Notification.Action)
-         */
-        // You will need this to create the Notification.Action.
+        Intent cancelIntent = new Intent(this, RegisterService.class);
+        cancelIntent.setAction(ACTION_CANCEL);
+        PendingIntent pendingCancelIntent = PendingIntent.getService(
+                this, 0, cancelIntent, PendingIntent.FLAG_IMMUTABLE);
+
+        Notification.Action cancelAction = new Notification.Action.Builder(
+                icon,
+                getString(R.string.register_cancel_button_label),
+                pendingCancelIntent).build();
+
+        notificationBuilder.addAction(cancelAction);
+
         Icon icon = Icon.createWithResource(this, R.drawable.ic_chat);
 
-
-
         /*
-         * Now construct the notification, set the service type and bind the service to the foreground
-         * (this means the low memory killer should not shut down the service except in extreme circumstances).
+         * Now construct the notification, set the service type and bind the service to
+         * the foreground
+         * (this means the low memory killer should not shut down the service except in
+         * extreme circumstances).
          */
         Notification notification = notificationBuilder.build();
 
@@ -144,7 +154,8 @@ public class RegisterService extends Service {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
             type = ServiceInfo.FOREGROUND_SERVICE_TYPE_SHORT_SERVICE;
         } else {
-            // Deprecated but we will use it with older APIs that don't support "short service."
+            // Deprecated but we will use it with older APIs that don't support "short
+            // service."
             type = ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC;
         }
 
@@ -153,7 +164,8 @@ public class RegisterService extends Service {
 
         /*
          * Now we've set the notification for the foreground service, let's register!
-         * Note that with a "short service," we will time out in three (3) minutes with ANR
+         * Note that with a "short service," we will time out in three (3) minutes with
+         * ANR
          */
         final Uri serverUrl = intent.getParcelableExtra(SERVER_URL_KEY);
         if (serverUrl == null) {
@@ -191,26 +203,30 @@ public class RegisterService extends Service {
                 final ChatServiceResponse registerResponse = response;
 
                 /*
-                 * Now we're registered, update the notificaton and shut down the service on the main thread.
+                 * Now we're registered, update the notificaton and shut down the service on the
+                 * main thread.
                  */
 
                 mainLoop.post(() -> {
 
-                    NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+                    NotificationManager notificationManager = (NotificationManager) getSystemService(
+                            Context.NOTIFICATION_SERVICE);
 
                     // Use notification to report registration result
                     if (registerResponse != null && !(registerResponse instanceof ErrorResponse)) {
-
-                        // TODO let user know request succeeded (update the notification)
-                        // DO NOT DISPLAY A TOAST (It's unsafe.  Why?)
-
-
+                        // Success
+                        Notification successNotification = createNotificationBuilder()
+                                .setContentText(getText(R.string.registered_notification_message))
+                                .setTicker(getText(R.string.registered_ticker_text))
+                                .build();
+                        notificationManager.notify(notificationId, successNotification);
                     } else {
-
-                        // TODO let user know request failed (update the notification)
-                        // DO NOT DISPLAY A TOAST (It's unsafe.  Why?)
-
-
+                        // Failure
+                        Notification failureNotification = createNotificationBuilder()
+                                .setContentText(getText(R.string.register_failed_notification_message))
+                                .setTicker(getText(R.string.register_failed_ticker_text))
+                                .build();
+                        notificationManager.notify(notificationId, failureNotification);
                     }
 
                     Log.d(TAG, "Dropping foreground status of service....");
@@ -247,10 +263,9 @@ public class RegisterService extends Service {
     }
 
     private Notification.Builder createNotificationBuilder() {
-        Notification.Builder notificationBuilder =
-                new Notification.Builder(this, channelId)
-                        .setContentTitle(getString(R.string.register_notification_title))
-                        .setSmallIcon(R.drawable.ic_chat);
+        Notification.Builder notificationBuilder = new Notification.Builder(this, channelId)
+                .setContentTitle(getString(R.string.register_notification_title))
+                .setSmallIcon(R.drawable.ic_chat);
         /*
          * We want the notification to be visible immediately.
          */
@@ -275,7 +290,6 @@ public class RegisterService extends Service {
          * Executor thread will receive InterruptedException and stop the service.
          */
     }
-
 
     @Nullable
     @Override

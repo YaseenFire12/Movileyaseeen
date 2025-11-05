@@ -20,16 +20,19 @@ public abstract class ChatroomDao {
     /*
      * List of chatrooms for the UI (asynchronous)
      */
+    @Query("SELECT * FROM Chatroom ORDER BY name ASC")
     public abstract LiveData<List<Chatroom>> fetchAllChatrooms();
 
     /*
      * List of chatrooms to be synced with the server (synchronous)
      */
+    @Query("SELECT * FROM Chatroom ORDER BY name ASC")
     public abstract List<Chatroom> getAllChatrooms();
 
     /*
      * Insert a chatroom, ignore conflict if it already occurs
      */
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
     public abstract void insert(Chatroom chatroom);
 
 }

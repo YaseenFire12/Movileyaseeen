@@ -55,6 +55,7 @@ public class RequestProcessor {
      * We use the Visitor pattern to dispatch to the appropriate request processing.
      * This is also where we attach metadata to the request that is attached as
      * application-specific request headers to the HTTP request.
+     * 
      * @param request
      * @return
      */
@@ -71,7 +72,7 @@ public class RequestProcessor {
             PackageInfo pInfo = context.getPackageManager().getPackageInfo(packageName, 0);
             request.version = pInfo.getLongVersionCode();
         } catch (PackageManager.NameNotFoundException e) {
-            Log.e(TAG, "Unrecognized package name: "+packageName, e);
+            Log.e(TAG, "Unrecognized package name: " + packageName, e);
         }
         request.latitude = location.getLatitude();
         request.longitude = location.getLongitude();
@@ -99,7 +100,8 @@ public class RequestProcessor {
             // Initialize the chatrooms database with the default chatroom
             chatDatabase.chatroomDao().insert(new Chatroom(context.getString(R.string.default_chat_room)));
 
-            // TODO save the server URI and user name in settings
+            Settings.saveServerUri(context, request.registerUrl);
+            Settings.saveChatName(context, request.chatName);
 
         }
         return response;
@@ -110,24 +112,19 @@ public class RequestProcessor {
         Log.d(TAG, "Posting message." + request.message.messageText);
 
         Log.d(TAG, "Inserting the message into the local database.");
-        long id = -1;  // Local PK of the message in the DB
-        // TODO insert the message into the local database (remember its primary key)
-
-
-        /*
-         * We are (for now) synchronously uploading messages to the server.
-         */
+        long id = chatDatabase.requestDao().insert(request.message);
         Log.d(TAG, "Uploading the message to the server...");
         ChatServiceResponse response = restMethod.perform(request);
         if (response instanceof PostMessageResponse) {
             Log.d(TAG, "Message upload successful!");
             PostMessageResponse postMessageResponse = (PostMessageResponse) response;
 
-            // TODO update the message in the database with its globally unique sequence number
+            chatDatabase.requestDao().updateSeqNum(id, postMessageResponse.getMessageId());
 
         } else if (response instanceof ErrorResponse) {
-            ErrorResponse errorResponse = (ErrorResponse)response;
-            Log.d(TAG, String.format("Message upload failed: %s (%d)", errorResponse.responseMessage, errorResponse.responseCode));
+            ErrorResponse errorResponse = (ErrorResponse) response;
+            Log.d(TAG, String.format("Message upload failed: %s (%d)", errorResponse.responseMessage,
+                    errorResponse.responseCode));
             Log.d(TAG, String.format("Upload error message: %s", errorResponse.errorMessage));
         }
         return response;
