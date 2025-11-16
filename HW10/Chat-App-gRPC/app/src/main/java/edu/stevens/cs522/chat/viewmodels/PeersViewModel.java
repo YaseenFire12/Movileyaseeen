@@ -25,12 +25,12 @@ public class PeersViewModel extends AndroidViewModel {
         chatDatabase = ChatDatabase.getInstance(context);
     }
 
-    // TODO finish this
-
     public LiveData<List<Peer>> fetchAllPeers() {
-        return null;
+        if (peers == null) {
+            peers = chatDatabase.peerDao().fetchAllPeers();
+        }
+        return peers;
     }
-
 
     @Override
     public void onCleared() {

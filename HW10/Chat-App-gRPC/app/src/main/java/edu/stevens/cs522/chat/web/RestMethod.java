@@ -36,7 +36,6 @@ import io.grpc.Status;
 import io.grpc.android.AndroidChannelBuilder;
 import io.grpc.stub.StreamObserver;
 
-
 /**
  * Created by dduggan.
  */
@@ -48,8 +47,6 @@ public class RestMethod {
     private static final boolean DEBUG = true;
 
     public static final String CHARSET = "UTF-8";
-
-
 
     /*
      * HTTP Request headers
@@ -65,7 +62,6 @@ public class RestMethod {
      */
     protected ManagedChannel channel;
 
-
     public RestMethod(Context context) {
         this.context = context.getApplicationContext();
     }
@@ -80,12 +76,15 @@ public class RestMethod {
             int port = serverUri.getPort();
             ClientInterceptor interceptor = new HeaderInterceptor(request);
 
-            // https://github.com/grpc/grpc-java/blob/master/documentation/android-channel-builder.md
-            // TODO create the channel
-
+            channel = AndroidChannelBuilder
+                    .forAddress(host, port)
+                    .usePlaintext()
+                    .intercept(interceptor)
+                    .build();
         }
         return channel;
     }
+
     protected ChatServiceBlockingStub createClient(Uri serverUri, ChatServiceRequest request) {
         /*
          * Create a blocking client stub (for registration).
@@ -114,37 +113,47 @@ public class RestMethod {
 
     public ChatServiceResponse perform(RegisterRequest request) {
         try {
-            Log.d(TAG, String.format("Performing Web service call for registration: chat name=%s, app id=%s....", request.chatName, request.appId));
+            Log.d(TAG, String.format("Performing Web service call for registration: chat name=%s, app id=%s....",
+                    request.chatName, request.appId));
 
-            Location location = Location.newBuilder().setLongitude(request.longitude).setLatitude(request.latitude).build();
+            Location location = Location.newBuilder().setLongitude(request.longitude).setLatitude(request.latitude)
+                    .build();
             RegistrationRequest registration = RegistrationRequest.newBuilder().setLocation(location).build();
 
-            // TODO execute the blocking Web service call
-
+            ChatServiceBlockingStub client = createClient(request.chatServer, request);
+            client.register(registration);
 
             Log.d(TAG, "Registration request succeeded!");
             return request.getResponse();
 
         } catch (Exception e) {
             ErrorResponse response = getErrorResponse(e);
-            Log.e(TAG, "Registration: Web service error, status code = "+ response.responseCode, e);
+            Log.e(TAG, "Registration: Web service error, status code = " + response.responseCode, e);
             return response;
         }
     }
 
     public interface UploadObserver {
         public void onSync(long lastSequenceNumber, Double longitude, Double latitude);
+
         public void onChatroom(Chatroom chatroom);
+
         public void onMessage(Message message);
+
         public void onCompleted();
+
         public void onError(Throwable t);
     }
 
     public interface DownloadObserver {
         public void onChatroom(Chatroom chatroom);
+
         public void onPeer(Peer peer);
+
         public void onMessage(Message message);
+
         public void onCompleted();
+
         public void onError(Throwable t);
     }
 
@@ -161,7 +170,7 @@ public class RestMethod {
                 } else if (item.hasPeer()) {
                     downloadObserver.onPeer(intern(item.getPeer()));
                 } else if (item.hasMessage()) {
-                    // TODO upsert the message (may be one of our own with updated seq number)
+                    downloadObserver.onMessage(intern(item.getMessage()));
                 }
             }
 
@@ -177,7 +186,9 @@ public class RestMethod {
         };
 
         StreamObserver<UploadItem> requestProducer = null;
-        // TODO get and invoke a streaming client stub
+        Uri serverUri = Settings.getServerUri(context);
+        ChatServiceStub streamingClient = createStreamingClient(serverUri, request);
+        StreamObserver<UploadItem> requestProducer = streamingClient.sync(responseConsumer);
 
         /*
          * Wrap the request producer in an upload observer.
@@ -186,7 +197,15 @@ public class RestMethod {
 
             @Override
             public void onSync(long lastSequenceNumber, Double longitude, Double latitude) {
-                // TODO
+                Location location = Location.newBuilder()
+                        .setLongitude(longitude)
+                        .setLatitude(latitude)
+                        .build();
+                SyncRequest syncReq = SyncRequest.newBuilder()
+                        .setVersion(lastSequenceNumber)
+                        .setLocation(location)
+                        .build();
+                requestProducer.onNext(UploadItem.newBuilder().setRequest(syncReq).build());
 
             }
 
@@ -197,7 +216,7 @@ public class RestMethod {
 
             @Override
             public void onMessage(Message message) {
-                // TODO
+                requestProducer.onNext(UploadItem.newBuilder().setMessage(extern(message)).build());
             }
 
             @Override
@@ -275,7 +294,8 @@ public class RestMethod {
     }
 
     /**
-     * Build and return a user-agent string that can identify this application to remote servers. Contains the package
+     * Build and return a user-agent string that can identify this application to
+     * remote servers. Contains the package
      * name and version code.
      */
     protected static String buildUserAgent(Context context) {

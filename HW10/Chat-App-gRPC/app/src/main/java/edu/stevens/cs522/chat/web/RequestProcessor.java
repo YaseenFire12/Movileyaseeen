@@ -64,6 +64,7 @@ public class RequestProcessor {
      * We use the Visitor pattern to dispatch to the appropriate request processing.
      * This is also where we attach metadata to the request that is attached as
      * application-specific request headers to the HTTP request.
+     * 
      * @param request
      * @return
      */
@@ -80,7 +81,7 @@ public class RequestProcessor {
             PackageInfo pInfo = context.getPackageManager().getPackageInfo(packageName, 0);
             request.version = pInfo.getLongVersionCode();
         } catch (PackageManager.NameNotFoundException e) {
-            Log.e(TAG, "Unrecognized package name: "+packageName, e);
+            Log.e(TAG, "Unrecognized package name: " + packageName, e);
         }
         request.latitude = location.getLatitude();
         request.longitude = location.getLongitude();
@@ -109,10 +110,12 @@ public class RequestProcessor {
             // Initialize the chatrooms database with the default chatroom
             chatDatabase.chatroomDao().insert(new Chatroom(context.getString(R.string.default_chat_room)));
 
-            // Initialize the sequence number (version counter) for synchronizing with the server
+            // Initialize the sequence number (version counter) for synchronizing with the
+            // server
             chatDatabase.requestDao().initLastSequenceNumber();
 
-            // TODO save the server URI and user name in settings
+            Settings.saveServerUri(context, request.chatServer);
+            Settings.saveChatName(context, request.chatName);
 
         }
         return response;
@@ -126,8 +129,7 @@ public class RequestProcessor {
         chatDatabase.chatroomDao().insert(new Chatroom(request.message.chatroom));
 
         Log.d(TAG, "Inserting the message into the local database.");
-        long id = -1;  // Local PK of the message in the DB
-        // TODO insert the message into the local database
+        long id = chatDatabase.requestDao().insert(request.message);
 
         /*
          * We will just insert the message into the database, and rely on periodic
@@ -140,7 +142,7 @@ public class RequestProcessor {
     public static final long SYNC_TIMEOUT = 10; // seconds
 
     /**
-     * For SYNC: perform a sync using a request manager.  These requests are
+     * For SYNC: perform a sync using a request manager. These requests are
      * generated from an alarm that is scheduled at periodic intervals.
      */
     public ChatServiceResponse perform(SynchronizeRequest request) {
@@ -153,7 +155,8 @@ public class RequestProcessor {
         Log.d(TAG, "Performing synchronization request.");
 
         /*
-         * Use this latch to wait until response from server has been completely processed.
+         * Use this latch to wait until response from server has been completely
+         * processed.
          */
         CountDownLatch latch = new CountDownLatch(1);
 
@@ -173,7 +176,7 @@ public class RequestProcessor {
             }
 
             public void onMessage(Message message) {
-                // TODO upsert the message (may be one of our own with a seq number updated by the server)
+                chatDatabase.requestDao().upsert(myAppID, message);
             }
 
             @Override
@@ -203,14 +206,19 @@ public class RequestProcessor {
 
         try {
             /*
-             * Start pushing uploads to the server via the observer we got back from the streaming call.
-             * These uploadds will be processed by the server.  The downloads it pushes to us will be
-             * processed by the listener we provided as the argument to the RPC.  The server will not
+             * Start pushing uploads to the server via the observer we got back from the
+             * streaming call.
+             * These uploadds will be processed by the server. The downloads it pushes to us
+             * will be
+             * processed by the listener we provided as the argument to the RPC. The server
+             * will not
              * start pushing downloads until we have finished pushing uploads.
              */
             /*
-             * The server needs the sequence number of the last message it downloaded to this device.
-             * The server will download any messages it has "seen" since it last synced with this device.
+             * The server needs the sequence number of the last message it downloaded to
+             * this device.
+             * The server will download any messages it has "seen" since it last synced with
+             * this device.
              */
             long lastSequenceNumber = chatDatabase.requestDao().getLastSequenceNumber();
             uploader.onSync(lastSequenceNumber, request.longitude, request.latitude);
@@ -222,17 +230,17 @@ public class RequestProcessor {
             for (Chatroom chatroom : chatrooms) {
                 uploader.onChatroom(chatroom);
             }
-
-            /*
-             * TODO Upload the messages that we have not yet uploaded to the server.
-             */
-
+            final List<Message> unsentMessages = chatDatabase.requestDao().getUnsentMessages();
+            for (Message message : unsentMessages) {
+                uploader.onMessage(message);
+            }
 
             Log.i(TAG, "Finished uploading data to server");
             uploader.onCompleted();
 
             /*
-             * Now wait for the download of the server response to complete (see download observer,
+             * Now wait for the download of the server response to complete (see download
+             * observer,
              * which will decrement the countdown latch when downloading is finished).
              */
             boolean completed = latch.await(SYNC_TIMEOUT, TimeUnit.SECONDS);

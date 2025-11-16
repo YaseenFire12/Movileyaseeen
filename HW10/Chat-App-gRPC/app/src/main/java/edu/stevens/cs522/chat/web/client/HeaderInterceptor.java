@@ -40,13 +40,15 @@ public class HeaderInterceptor implements ClientInterceptor {
     }
 
     @Override
-    public <ReqT, RespT> ClientCall<ReqT, RespT> interceptCall(MethodDescriptor<ReqT, RespT> method, CallOptions callOptions, Channel next) {
+    public <ReqT, RespT> ClientCall<ReqT, RespT> interceptCall(MethodDescriptor<ReqT, RespT> method,
+            CallOptions callOptions, Channel next) {
         return new SimpleForwardingClientCall<ReqT, RespT>(next.newCall(method, callOptions)) {
             @Override
             public void start(Listener<RespT> responseListener, Metadata headers) {
                 /* put custom headers */
                 headers.put(APPLICATION_ID_KEY, appId.toString());
-                // TODO add chat name header
+                headers.put(CHAT_NAME_KEY, chatName);
+                super.start(responseListener, headers);
 
                 super.start(responseListener, headers);
             }

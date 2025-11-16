@@ -22,7 +22,8 @@ import edu.stevens.cs522.chat.entities.Peer;
 
 @Dao
 /**
- * These are synchronous operations used on a background thread for syncing messages with a server.
+ * These are synchronous operations used on a background thread for syncing
+ * messages with a server.
  */
 public abstract class RequestDao {
 
@@ -64,7 +65,8 @@ public abstract class RequestDao {
     public abstract List<Message> getUnsentMessages();
 
     /**
-     * After we upload a message, the server responds with the sequence numbers of the message
+     * After we upload a message, the server responds with the sequence numbers of
+     * the message
      */
     @Query("UPDATE Message SET seqNum = :seqNum WHERE id = :id")
     public abstract void updateSeqNum(long id, long seqNum);
@@ -76,8 +78,10 @@ public abstract class RequestDao {
     /**
      * Insert other peer's messages or update our own, with input from server.
      *
-     * In updating the sequence number on each message (in case we lose network connection),
-     * this assumes that the server downloads messages in increasing order by sequence number.
+     * In updating the sequence number on each message (in case we lose network
+     * connection),
+     * this assumes that the server downloads messages in increasing order by
+     * sequence number.
      */
     public void upsert(UUID appID, Message message) {
 
@@ -86,10 +90,10 @@ public abstract class RequestDao {
             updateSeqNum(message.id, message.seqNum);
         } else {
             // Another peer's message, with sequenceId set by server
-            message.id = 0;  // We give it our own PK in our local messages database
+            message.id = 0; // We give it our own PK in our local messages database
             insert(message);
         }
-        // TODO immediately update the last sequence number, in case the connection is broken.
+        updateLastSequenceNumber(message.seqNum);
     }
 
 }

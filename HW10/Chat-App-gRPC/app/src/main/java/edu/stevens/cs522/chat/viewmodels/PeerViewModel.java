@@ -28,10 +28,12 @@ public class PeerViewModel extends AndroidViewModel {
         chatDatabase = ChatDatabase.getInstance(context);
     }
 
-    // TODO finish this
-
     public LiveData<List<Message>> fetchMessagesFromPeer(Peer peer) {
-        return null;
+        if (currentPeer == null || !peer.name.equals(currentPeer.name)) {
+            currentPeer = peer;
+            messages = chatDatabase.messageDao().fetchMessagesFromPeer(peer.name);
+        }
+        return messages;
     }
 
     @Override

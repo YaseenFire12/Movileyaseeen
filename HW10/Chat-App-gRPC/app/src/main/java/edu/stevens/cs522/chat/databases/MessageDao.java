@@ -14,13 +14,16 @@ import edu.stevens.cs522.chat.entities.Chatroom;
 import edu.stevens.cs522.chat.entities.Message;
 import edu.stevens.cs522.chat.entities.Peer;
 
-// TODO add annotations for Repository pattern
+@Dao
 public interface MessageDao {
 
+    @Query("SELECT * FROM Message WHERE chatroom = :chatroom ORDER BY timestamp ASC")
     public abstract LiveData<List<Message>> fetchAllMessages(String chatroom);
 
+    @Query("SELECT * FROM Message WHERE sender = :peerName ORDER BY timestamp ASC")
     public LiveData<List<Message>> fetchMessagesFromPeer(String peerName);
 
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     public void persist(Message message);
 
 }

@@ -17,7 +17,6 @@ import edu.stevens.cs522.chat.web.work.SynchronizeWorker;
 import edu.stevens.cs522.chat.services.RegisterService;
 import edu.stevens.cs522.chat.settings.Settings;
 
-
 /**
  * Created by dduggan.
  */
@@ -40,15 +39,15 @@ public class ChatHelper {
         this.location = new CurrentLocation(context);
     }
 
-    public void register (Uri chatServer, String chatName) {
+    public void register(Uri chatServer, String chatName) {
         if (chatName != null && !chatName.isEmpty()) {
-            // TODO register with the cloud chat service
+            RegisterService.register(context, chatServer, chatName);
         }
     }
 
     public void postMessage(String chatRoom, String messageText) {
         if (messageText != null && !messageText.isEmpty()) {
-            Log.d(TAG, "Posting message: "+messageText);
+            Log.d(TAG, "Posting message: " + messageText);
             Message mesg = new Message();
             mesg.messageText = messageText;
             mesg.appID = Settings.getAppId(context);
@@ -61,9 +60,8 @@ public class ChatHelper {
             Bundle data = new Bundle();
             data.putParcelable(PostMessageWorker.MESSAGE_KEY, mesg);
 
-            /*
-             * TODO enqueue a request with workManager to post this message
-             */
+            OneTimeWorkRequest postRequest = new OneTimeWorkRequest(PostMessageWorker.class, data);
+            workManager.enqueue(postRequest);
 
         }
     }
@@ -76,8 +74,8 @@ public class ChatHelper {
         if (syncRequest != null) {
             throw new IllegalStateException("Trying to schedule sync when it is already scheduled!");
         }
-
-        // TODO schedule periodic synchronization with message database
+        syncRequest = new PeriodicWorkRequest(SynchronizeWorker.class, new Bundle(), SYNC_INTERVAL);
+        workManager.enqueuePeriodicUniqueWork(syncRequest);
 
     }
 
@@ -88,8 +86,8 @@ public class ChatHelper {
             throw new IllegalStateException("Trying to cancel sync when it is not scheduled!");
         }
 
-        // TODO cancel periodic synchronization with message database
-
+        workManager.cancelPeriodicUniqueWork(syncRequest);
+        syncRequest = null;
 
     }
 

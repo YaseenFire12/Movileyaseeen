@@ -20,7 +20,8 @@ import edu.stevens.cs522.chat.entities.UUIDConverter;
  * See build.gradle file for app for where schema file is left after processing.
  */
 
-// TODO Add annotations (including @TypeConverters)
+@Database(entities = {Peer.class, Chatroom.class, Message.class, Counter.class}, version = 1)
+@TypeConverters({TimestampConverter.class, UUIDConverter.class})
 public abstract class ChatDatabase extends RoomDatabase {
 
     private static final String DATABASE_NAME = "messages.db";

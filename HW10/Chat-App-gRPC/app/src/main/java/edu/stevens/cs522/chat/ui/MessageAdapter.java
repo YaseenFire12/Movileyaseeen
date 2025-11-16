@@ -20,14 +20,13 @@ public abstract class MessageAdapter extends RecyclerView.Adapter<MessageAdapter
 
     private List<Message> messages;
 
-
     /**
      * Provide a reference to the type of views that you are using
      * (custom ViewHolder).
      */
     public static class ViewHolder extends RecyclerView.ViewHolder {
 
-        private final TextView headingView;  // either sender or chatroom, depending on activity
+        private final TextView headingView; // either sender or chatroom, depending on activity
 
         private final TextView messageView;
 
@@ -70,10 +69,9 @@ public abstract class MessageAdapter extends RecyclerView.Adapter<MessageAdapter
     // Replace the contents of a view (invoked by the layout manager)
     @Override
     public void onBindViewHolder(ViewHolder viewHolder, final int position) {
-
-        // TODO set the fields of the view for the message
-        // Use getHeading() to get the heading in the message
-
+        Message message = messages.get(position);
+        viewHolder.setMetadata(getHeading(message));
+        viewHolder.setMessage(message.messageText);
     }
 
     // Return the size of your dataset (invoked by the layout manager)
@@ -91,4 +89,3 @@ public abstract class MessageAdapter extends RecyclerView.Adapter<MessageAdapter
         this.messages = messages;
     }
 }
-

@@ -15,13 +15,16 @@ import java.util.UUID;
  * Created by dduggan.
  */
 
-// TODO annotate (including FK constraints)
-// You must also declare indices on the FK columns, otherwise integrity checking
-// may trigger a linear search of this table.
-
+@Entity(foreignKeys = {
+        @ForeignKey(entity = Chatroom.class, parentColumns = "name", childColumns = "chatroom", onDelete = ForeignKey.CASCADE),
+        @ForeignKey(entity = Peer.class, parentColumns = "name", childColumns = "sender", onDelete = ForeignKey.CASCADE)
+}, indices = {
+        @Index(value = "chatroom"),
+        @Index(value = "sender")
+})
 public class Message implements Parcelable {
 
-    // TODO annotate
+    @PrimaryKey(autoGenerate = true)
     public long id;
 
     public String chatroom;

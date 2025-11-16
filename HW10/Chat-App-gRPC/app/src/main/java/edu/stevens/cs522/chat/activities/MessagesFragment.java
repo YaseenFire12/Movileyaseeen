@@ -61,13 +61,12 @@ public class MessagesFragment extends Fragment implements OnClickListener {
     // Current chatroom selection, shared between activity and messages fragment
     private SharedViewModel sharedViewModel;
 
-    // Display list of messages in a chatroom (with senders identified in message headings)
+    // Display list of messages in a chatroom (with senders identified in message
+    // headings)
     private MessageAdapter messagesAdapter;
-
 
     public MessagesFragment() {
     }
-
 
     @Override
     public void onAttach(Context context) {
@@ -79,9 +78,9 @@ public class MessagesFragment extends Fragment implements OnClickListener {
         }
     }
 
-	@Override
-	public void onCreate(Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
     }
 
     @Override
@@ -105,17 +104,17 @@ public class MessagesFragment extends Fragment implements OnClickListener {
         RecyclerView messageList = rootView.findViewById(R.id.message_list);
         messageList.setLayoutManager(new LinearLayoutManager(requireActivity()));
 
-        // TODO Initialize the recyclerview and adapter for messages
+        messagesAdapter = new MessageSenderAdapter();
+        messageList.setAdapter(messagesAdapter);
 
-
-         return rootView;
+        return rootView;
     }
 
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        // TODO get the view models
-
+        chatViewModel = new ViewModelProvider(this).get(ChatViewModel.class);
+        sharedViewModel = new ViewModelProvider(requireActivity()).get(SharedViewModel.class);
 
         // Rely on live data to requery the messages if the chatroom selection changes
         queryMessages(sharedViewModel.getSelected());
@@ -136,11 +135,15 @@ public class MessagesFragment extends Fragment implements OnClickListener {
             return;
         }
 
-        // TODO query the database asynchronously, and use messagesAdapter to display the result
+        LiveData<List<Message>> messages = chatViewModel.fetchAllMessages(chatroom);
+        messages.observe(getViewLifecycleOwner(), messageList -> {
+            messagesAdapter.setMessages(messageList);
+            messagesAdapter.notifyDataSetChanged();
+        });
 
     }
 
-	public void onResume() {
+    public void onResume() {
         super.onResume();
     }
 
