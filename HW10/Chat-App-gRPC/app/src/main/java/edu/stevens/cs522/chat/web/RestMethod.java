@@ -185,10 +185,9 @@ public class RestMethod {
             }
         };
 
-        StreamObserver<UploadItem> requestProducer = null;
         Uri serverUri = Settings.getServerUri(context);
         ChatServiceStub streamingClient = createStreamingClient(serverUri, request);
-        StreamObserver<UploadItem> requestProducer = streamingClient.sync(responseConsumer);
+        final StreamObserver<UploadItem> requestProducer = streamingClient.sync(responseConsumer);
 
         /*
          * Wrap the request producer in an upload observer.

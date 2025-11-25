@@ -1,0 +1,66 @@
+<h1>Register</h1>
+
+{{#if error}}
+  <p class="error">{{error}}</p>
+{{/if}}
+
+<form method="POST" action="/register" name="signup-form" id="signup-form">
+  <div>
+    <label for="firstName">First Name:</label>
+    <input type="text" name="firstName" id="firstName" value="{{firstName}}" required>
+  </div>
+
+  <div>
+    <label for="lastName">Last Name:</label>
+    <input type="text" name="lastName" id="lastName" value="{{lastName}}" required>
+  </div>
+
+  <div>
+    <label for="userId">User ID:</label>
+    <input type="text" name="userId" id="userId" value="{{userId}}" required>
+  </div>
+
+  <div>
+    <label for="password">Password:</label>
+    <input type="password" name="password" id="password" required>
+  </div>
+
+  <div>
+    <label for="confirmPassword">Confirm Password:</label>
+    <input type="password" name="confirmPassword" id="confirmPassword" required>
+  </div>
+
+  <div>
+    <label for="favoriteQuote">Favorite Quote:</label>
+    <input type="text" name="favoriteQuote" id="favoriteQuote" value="{{favoriteQuote}}" required>
+  </div>
+
+  <div>
+    <label for="backgroundColor">Background Color:</label>
+    <input type="color" name="backgroundColor" id="backgroundColor" value="{{backgroundColor}}" required>
+  </div>
+
+  <div>
+    <label for="fontColor">Font Color:</label>
+    <input type="color" name="fontColor" id="fontColor" value="{{fontColor}}" required>
+  </div>
+
+  <div>
+    <label for="role">Role:</label>
+    <select name="role" id="role" required>
+      <option value="">-- Select Role --</option>
+      <option value="user" {{#if (eq role "user")}}selected{{/if}}>User</option>
+      <option value="superuser" {{#if (eq role "superuser")}}selected{{/if}}>Super User</option>
+    </select>
+  </div>
+
+  <button type="submit" name="submitButton" id="submitButton">Register</button>
+</form>
+
+<p>
+  <a href="/login">Already have an account? Click here to sign-in</a>
+</p>
+
+<p>
+  <a href="/">Back to Home</a>
+</p>

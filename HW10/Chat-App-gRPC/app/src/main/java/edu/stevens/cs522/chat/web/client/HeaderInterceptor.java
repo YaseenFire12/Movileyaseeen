@@ -49,8 +49,6 @@ public class HeaderInterceptor implements ClientInterceptor {
                 headers.put(APPLICATION_ID_KEY, appId.toString());
                 headers.put(CHAT_NAME_KEY, chatName);
                 super.start(responseListener, headers);
-
-                super.start(responseListener, headers);
             }
         };
     }

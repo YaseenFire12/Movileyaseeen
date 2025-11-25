@@ -75,8 +75,8 @@ public class ViewPeerActivity extends FragmentActivity {
         PeerViewModel peerViewModel = new ViewModelProvider(this).get(PeerViewModel.class);
 
         LiveData<List<Message>> messages = peerViewModel.fetchMessagesFromPeer(peer);
-        messages.observe(this, messageList -> {
-            messageAdapter.setMessages(messageList);
+        messages.observe(this, messageList1 -> {
+            messageAdapter.setMessages(messageList1);
             messageAdapter.notifyDataSetChanged();
         });
 

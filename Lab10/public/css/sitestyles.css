@@ -1,0 +1,115 @@
+/* General body styling */
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 20px;
+  line-height: 1.6;
+}
+
+/* Heading styles */
+h1 {
+  color: #333;
+  margin-bottom: 20px;
+  border-bottom: 2px solid #ddd;
+  padding-bottom: 10px;
+}
+
+/* Form styling */
+form {
+  max-width: 500px;
+  margin: 20px 0;
+}
+
+form div {
+  margin-bottom: 15px;
+}
+
+label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: bold;
+}
+
+input[type="text"],
+input[type="password"],
+input[type="color"],
+select {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  box-sizing: border-box;
+}
+
+/* Button styling */
+button {
+  background-color: #4CAF50;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+button:hover {
+  background-color: #45a049;
+}
+
+/* Link styling */
+a {
+  color: #0066cc;
+  text-decoration: none;
+  margin-right: 15px;
+  display: inline-block;
+  margin-top: 10px;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+/* Navigation */
+nav {
+  margin: 20px 0;
+  padding: 15px;
+  background-color: #f4f4f4;
+  border-radius: 4px;
+}
+
+/* Error message styling */
+.error {
+  color: #d8000c;
+  background-color: #ffd2d2;
+  padding: 10px;
+  border: 1px solid #d8000c;
+  border-radius: 4px;
+  margin: 10px 0;
+}
+
+/* User view divs */
+#userView,
+#superUserView {
+  max-width: 800px;
+  padding: 20px;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  margin: 20px 0;
+}
+
+#userView p,
+#superUserView p {
+  margin: 15px 0;
+  padding: 10px;
+  background-color: white;
+  border-left: 4px solid #4CAF50;
+  border-radius: 4px;
+}
+
+/* Footer styling */
+footer {
+  margin-top: 50px;
+  padding-top: 20px;
+  border-top: 1px solid #ddd;
+  color: #666;
+}

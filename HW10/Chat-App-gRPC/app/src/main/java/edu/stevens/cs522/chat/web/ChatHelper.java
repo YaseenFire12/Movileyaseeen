@@ -61,7 +61,7 @@ public class ChatHelper {
             data.putParcelable(PostMessageWorker.MESSAGE_KEY, mesg);
 
             OneTimeWorkRequest postRequest = new OneTimeWorkRequest(PostMessageWorker.class, data);
-            workManager.enqueue(postRequest);
+            workManager.enqueueUniqueWork(postRequest);
 
         }
     }
