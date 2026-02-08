@@ -384,15 +384,22 @@ public class App {
 	}
 
 	private SurgeryTreatment addSurgeryTreatment(EntityManager entityManager) throws IOException {
-        // TODO finish this
+		SurgeryTreatment treatment = treatmentFactory.createSurgeryTreatment();
 
-		return null;
+		addBasicTreatmentInfo(entityManager, treatment);
+
+		treatment.setSurgeryDate(readDate("Surgery date"));
+
+		msg("Discharge instructions: ");
+		treatment.setDischargeInstructions(in.readLine());
+
+		return treatment;
 	}
 
 	private RadiologyTreatment addRadiologyTreatment(EntityManager entityManager) throws IOException {
-        RadiologyTreatment treatment = null;  // TODO
+		RadiologyTreatment treatment = treatmentFactory.createRadiologyTreatment();
 
-        addBasicTreatmentInfo(entityManager,  treatment);
+		addBasicTreatmentInfo(entityManager, treatment);
 
 		LocalDate date = readDate("Treatment date");
 		while (date != null) {
@@ -404,9 +411,9 @@ public class App {
 	}
 
 	private PhysiotherapyTreatment addPhysiotherapyTreatment(EntityManager entityManager) throws IOException {
-		PhysiotherapyTreatment treatment = null;  // TODO
+		PhysiotherapyTreatment treatment = treatmentFactory.createPhysiotherapyTreatment();
 
-        addBasicTreatmentInfo(entityManager, treatment);
+		addBasicTreatmentInfo(entityManager, treatment);
 
 		LocalDate date = readDate("Treatment date");
 		while (date != null) {

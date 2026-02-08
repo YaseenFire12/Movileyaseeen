@@ -2,8 +2,9 @@ package edu.stevens.cs548.clinic.data;
 
 import java.io.Serial;
 import java.time.LocalDate;
+import jakarta.persistence.Entity;
 
-//TODO JPA annotations
+@Entity
 public class SurgeryTreatment extends Treatment {
 
 	/**

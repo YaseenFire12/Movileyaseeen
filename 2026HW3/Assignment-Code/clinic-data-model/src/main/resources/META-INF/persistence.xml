@@ -6,7 +6,12 @@
 		<description>Domain model for a clinical information system.</description>
 		<provider>org.hibernate.jpa.HibernatePersistenceProvider</provider>
 		<class>edu.stevens.cs548.clinic.data.Patient</class>
-		<!-- TODO List domain classes (use "class" element) -->
+		<class>edu.stevens.cs548.clinic.data.Provider</class>
+		<class>edu.stevens.cs548.clinic.data.Treatment</class>
+		<class>edu.stevens.cs548.clinic.data.DrugTreatment</class>
+		<class>edu.stevens.cs548.clinic.data.SurgeryTreatment</class>
+		<class>edu.stevens.cs548.clinic.data.RadiologyTreatment</class>
+		<class>edu.stevens.cs548.clinic.data.PhysiotherapyTreatment</class>
 
 		<properties>
             <property name="jakarta.persistence.schema-generation.database.action" value="drop-and-create"/>

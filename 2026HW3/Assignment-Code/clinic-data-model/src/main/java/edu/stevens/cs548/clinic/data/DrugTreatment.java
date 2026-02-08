@@ -3,15 +3,11 @@ package edu.stevens.cs548.clinic.data;
 import java.io.Serial;
 import java.io.Serializable;
 import java.time.LocalDate;
+import jakarta.persistence.Entity;
 
-/**
- * Entity implementation class for Entity: DrugTreatment
- * 
- */
-// TODO JPA annotations
 
+@Entity
 public class DrugTreatment extends Treatment implements Serializable {
-
 	@Serial
     private static final long serialVersionUID = 1L;
 
@@ -64,7 +60,6 @@ public class DrugTreatment extends Treatment implements Serializable {
 	public void setFrequency(int frequency) {
 		this.frequency = frequency;
 	}
-	
 
 	public DrugTreatment() {
 		super();

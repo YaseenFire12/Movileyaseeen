@@ -1,7 +1,6 @@
 package edu.stevens.cs548.clinic.data;
 
-import jakarta.persistence.NamedQueries;
-import jakarta.persistence.NamedQuery;
+import jakarta.persistence.*;
 import java.io.Serial;
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -23,14 +22,14 @@ import java.util.UUID;
 		name = "RemoveAllProviders", 
 		query = "delete from Provider p")
 })
-// TODO
 
+@Entity
 public class Provider implements Serializable {
 		
 	@Serial
     private static final long serialVersionUID = -876909316791083094L;
 
-    // TODO PK (Do NOT auto-generate)
+    @Id
     private UUID id;
 	
 	private String npi;
@@ -59,22 +58,18 @@ public class Provider implements Serializable {
 		this.name = name;
 	}
 
-	// TODO JPA annotations (propagate persist of provider to treatments)
+	@OneToMany(cascade = CascadeType.PERSIST, mappedBy = "provider")
 	private Collection<Treatment> treatments;
-
-	/*
-	 * Addition and deletion of treatments should be done here.
-	 */
 
 	public boolean administers(Treatment t) {
 		return treatments.contains(t);
 	}
-	
-	public void addTreatment (Treatment t) {
-		/*
-		 * TODO complete this operation (see patient entity)
-		 */
 
+	public void addTreatment (Treatment t) {
+		treatments.add(t);
+		if (t.getProvider() != this) {
+			t.setProvider(this);
+		}
 	}
 
 

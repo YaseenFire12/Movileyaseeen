@@ -1,9 +1,9 @@
 package edu.stevens.cs548.clinic.data;
 
-import jakarta.persistence.NamedQueries;
-import jakarta.persistence.NamedQuery;
+import jakarta.persistence.*;
 import java.io.Serial;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.UUID;
 
@@ -24,14 +24,14 @@ import java.util.UUID;
 		query = "delete from Treatment t")
 })
 
-// TODO
-
+@Entity
+@Inheritance(strategy = InheritanceType.JOINED)
 public abstract class Treatment implements Serializable {
 	
 	@Serial
     private static final long serialVersionUID = 1L;
 
-    // TODO PK (Do NOT auto-generate)
+    @Id
     private UUID id;
 	
 	protected String diagnosis;
@@ -53,9 +53,7 @@ public abstract class Treatment implements Serializable {
 		this.diagnosis = diagnosis;
 	}
 
-	/*
-	 * TODO including cascade of persist
-	 */
+	@ManyToOne(cascade = CascadeType.PERSIST)
 	protected Patient patient;
 
 	public Patient getPatient() {
@@ -72,34 +70,30 @@ public abstract class Treatment implements Serializable {
 		}
 	}
 
-	/*
-	 * TODO including cascade of persist
-	 */
+	@ManyToOne(cascade = CascadeType.PERSIST)
 	protected Provider provider;
 
 	public Provider getProvider() {
 		return provider;
-	}	
-	
-	public void setProvider(Provider provider) {
-		// TODO see setPatient
+	}
 
-	}	
-	
-	/*
-	 * TODO including cascade of persist
-	 */
+	public void setProvider(Provider provider) {
+		this.provider = provider;
+		if (!provider.administers(this)) {
+			provider.addTreatment(this);
+		}
+	}
+
+	@OneToMany(cascade = CascadeType.PERSIST)
 	protected Collection<Treatment> followupTreatments;
 	
 	public void addFollowupTreatment(Treatment t) {
 		followupTreatments.add(t);
 	}
 
-	
+
 	public Treatment() {
 		super();
-		/*
-		 * TODO initialize lists
-		 */
+		followupTreatments = new ArrayList<>();
 	}
 }

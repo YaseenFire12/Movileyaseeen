@@ -1,5 +1,6 @@
 package edu.stevens.cs548.clinic.data;
 
+import jakarta.persistence.Entity;
 import jakarta.persistence.ElementCollection;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.OrderBy;
@@ -8,8 +9,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
-// TODO
-
+@Entity
 public class PhysiotherapyTreatment extends Treatment {
 
 	@Serial

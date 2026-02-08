@@ -1,7 +1,6 @@
 package edu.stevens.cs548.clinic.data;
 
-import jakarta.persistence.NamedQueries;
-import jakarta.persistence.NamedQuery;
+import jakarta.persistence.*;
 import java.io.Serial;
 import java.io.Serializable;
 import java.time.LocalDate;
@@ -28,15 +27,13 @@ import java.util.UUID;
 		query = "delete from Patient p")
 })
 
-// TODO
-
-// @Table(indexes = @Index(columnList="patientId"))
+@Entity
 public class Patient implements Serializable {
 		
 	@Serial
     private static final long serialVersionUID = -4512912599605407549L;
 
-	// TODO PK (Do NOT auto-generate)
+	@Id
 	private UUID id;
 			
 	private String name;
@@ -65,7 +62,7 @@ public class Patient implements Serializable {
 		this.dob = dob;
 	}
 
-	// TODO JPA annotations (propagate persist of patient to treatments)
+	@OneToMany(cascade = CascadeType.PERSIST, mappedBy = "patient")
 	private Collection<Treatment> treatments;
 
 
