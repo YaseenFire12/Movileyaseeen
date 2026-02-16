@@ -3,8 +3,9 @@ package edu.stevens.cs548.clinic.domain;
 import jakarta.persistence.*;
 import java.util.List;
 import java.util.UUID;
-import org.jboss.logging.Logger;
 
+import jakarta.transaction.Transactional;
+import org.jboss.logging.Logger;
 import jakarta.enterprise.context.RequestScoped;
 import jakarta.inject.Inject;
 

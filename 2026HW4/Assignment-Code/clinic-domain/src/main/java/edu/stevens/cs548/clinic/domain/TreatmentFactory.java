@@ -1,10 +1,12 @@
 package edu.stevens.cs548.clinic.domain;
 
 public class TreatmentFactory implements ITreatmentFactory {
-	
+
 	/*
-	 * Patient and provider fields are set when the treatment is added (see Provider).
-	 * Id field is set when the treatment entity is synced with the database (see TreatmentDAO).
+	 * Patient and provider fields are set when the treatment is added (see
+	 * Provider).
+	 * Id field is set when the treatment entity is synced with the database (see
+	 * TreatmentDAO).
 	 */
 
 	@Override
@@ -12,10 +14,6 @@ public class TreatmentFactory implements ITreatmentFactory {
 		return new DrugTreatment();
 	}
 
-	/*
-	 * TODO define other factory methods
-	 */
-	
 	@Override
 	public SurgeryTreatment createSurgeryTreatment() {
 		return new SurgeryTreatment();
@@ -30,7 +28,5 @@ public class TreatmentFactory implements ITreatmentFactory {
 	public PhysiotherapyTreatment createPhysiotherapyTreatment() {
 		return new PhysiotherapyTreatment();
 	}
-	
-	
 
 }

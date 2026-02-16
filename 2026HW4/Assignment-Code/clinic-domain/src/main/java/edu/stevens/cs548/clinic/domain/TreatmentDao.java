@@ -4,7 +4,10 @@ import jakarta.persistence.*;
 import jakarta.enterprise.context.RequestScoped;
 import java.util.List;
 import java.util.UUID;
+
+import jakarta.transaction.Transactional;
 import org.jboss.logging.Logger;
+import jakarta.inject.Inject;
 
 @RequestScoped
 @Transactional
