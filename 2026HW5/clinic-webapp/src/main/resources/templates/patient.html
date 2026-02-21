@@ -1,0 +1,41 @@
+{#include base}
+    {#title}View Patient{/title}
+    <h2>View Patient</h2>
+    <p>
+    <table>
+        <tr>
+            <td>Patient ID:</td>
+            <td>{patient.id}</td>
+        </tr>
+        <tr>
+            <td>Patient Name:</td>
+            <td>{}patient.name}</td>
+        </tr>
+        <tr>
+            <td>Patient DOB:</td>
+            <td>{patient.dob.format('d MMM uuuu')}</td>
+        </tr>
+    </table>
+
+    {#if ! patient.treatments.isEmpty()}
+        <h3>Treatments</h3>
+        <table  class="gridTable">
+            <tr>
+                <th>Type</th>
+                <th>Diagnosis</th>
+                <th>Provider</th>
+            </tr>
+
+            {#for treatment in patient.treatments}
+                <tr>
+                    <td><a HREF="{tmt:treatmentLink(uri, treatment.providerId, treatment.id)}">{tmt:treatmentType(treatment)}</a></td>
+                    <td>{treatment.diagnosis}</td>
+                    <td>
+                        <a HREF="{tmt:providerLink(uri, treatment.providerId)}">{treatment.providerName}</a>
+                    </td>
+                </tr>
+            {/for}
+        </table>
+    {/if}
+
+{/include}
