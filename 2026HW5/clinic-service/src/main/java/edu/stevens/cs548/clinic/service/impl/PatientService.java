@@ -11,20 +11,22 @@ import edu.stevens.cs548.clinic.service.IPatientService;
 import edu.stevens.cs548.clinic.service.dto.PatientDto;
 import edu.stevens.cs548.clinic.service.dto.PatientDtoFactory;
 import edu.stevens.cs548.clinic.service.dto.TreatmentDto;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 import org.jboss.logging.Logger;
+import jakarta.enterprise.context.RequestScoped;
+import jakarta.inject.Inject;
+import jakarta.transaction.Transactional;
 
 /**
  * CDI Bean implementation class PatientService
  */
-// TODO
+@RequestScoped
+@Transactional
 public class PatientService implements IPatientService {
-
-    // TODO inject with constructor injection
-	@SuppressWarnings("unused")
 	private final Logger logger;
 
     private final IPatientDao patientDao;
@@ -35,7 +37,13 @@ public class PatientService implements IPatientService {
 
     private final TimeBasedEpochGenerator uuidGenerator = Generators.timeBasedEpochGenerator();
 
-
+	@Inject
+	public PatientService(Logger logger, IPatientDao patientDao, IPatientFactory patientFactory) {
+		this.logger = logger;
+		this.patientDao = patientDao;
+		this.patientFactory = patientFactory;
+		this.patientDtoFactory = new PatientDtoFactory();
+	}
 
 	/**
 	 * Add a patient.
