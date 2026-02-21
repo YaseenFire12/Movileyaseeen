@@ -3,13 +3,13 @@ package edu.stevens.cs548.clinic.domain;
 import java.io.Serial;
 import java.io.Serializable;
 import java.time.LocalDate;
+import jakarta.persistence.Entity;
 
 /**
  * Entity implementation class for Entity: DrugTreatment
  * 
  */
-// TODO JPA annotations
-
+@Entity
 public class DrugTreatment extends Treatment implements Serializable {
 
 	@Serial

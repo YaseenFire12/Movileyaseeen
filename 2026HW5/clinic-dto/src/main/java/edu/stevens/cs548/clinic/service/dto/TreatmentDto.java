@@ -5,11 +5,20 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.UUID;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
 
-/*
- * TODO Annotate for serialization of subclasses
- */
 
+@JsonTypeInfo(
+		use = JsonTypeInfo.Id.NAME,
+		include = JsonTypeInfo.As.PROPERTY,
+		property = "type"
+)
+@JsonSubTypes({
+		@JsonSubTypes.Type(value = DrugTreatmentDto.class, name = "DRUGTREATMENT"),
+		@JsonSubTypes.Type(value = RadiologyTreatmentDto.class, name = "RADIOLOGY"),
+		@JsonSubTypes.Type(value = SurgeryTreatmentDto.class, name = "SURGERY"),
+		@JsonSubTypes.Type(value = PhysiotherapyTreatmentDto.class, name = "PHYSIOTHERAPY")
+})
 public sealed abstract class TreatmentDto permits DrugTreatmentDto, PhysiotherapyTreatmentDto, RadiologyTreatmentDto, SurgeryTreatmentDto {
 	
 	private UUID id;

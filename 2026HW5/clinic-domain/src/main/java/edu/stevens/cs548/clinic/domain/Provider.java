@@ -1,9 +1,7 @@
 package edu.stevens.cs548.clinic.domain;
 
 import edu.stevens.cs548.clinic.domain.ITreatmentDao.TreatmentExn;
-import jakarta.persistence.NamedQueries;
-import jakarta.persistence.NamedQuery;
-import jakarta.persistence.Transient;
+import jakarta.persistence.*;
 import java.io.Serial;
 import java.io.Serializable;
 import java.time.LocalDate;
@@ -17,6 +15,7 @@ import java.util.function.Consumer;
  * Entity implementation class for Entity: Patient
  *
  */
+@Entity
 @NamedQueries({
 	@NamedQuery(
 		name="SearchProviderByProviderId",
@@ -34,14 +33,12 @@ import java.util.function.Consumer;
 		name = "RemoveAllProviders", 
 		query = "delete from Provider p")
 })
-// TODO
-
 public class Provider implements Serializable, ITreatmentImporter {
 
     @Serial
     private static final long serialVersionUID = -876909316791083094L;
 
-    // TODO PK (Do NOT auto-generate)
+    @Id
     private UUID id;
 
 	private String npi;
@@ -72,7 +69,7 @@ public class Provider implements Serializable, ITreatmentImporter {
 		this.name = name;
 	}
 
-	// TODO JPA annotations (propagate persist of provider to treatments)
+	@OneToMany(cascade = CascadeType.PERSIST, mappedBy = "provider")
 	private Collection<Treatment> treatments;
 
 	@Transient
@@ -202,9 +199,17 @@ public class Provider implements Serializable, ITreatmentImporter {
 	public Consumer<Treatment> importSurgery(UUID tid, Patient patient, Provider provider, String diagnosis, LocalDate date,
 			String dischargeInstructions, Consumer<Treatment> consumer) {
 		final SurgeryTreatment treatment = treatmentFactory.createSurgeryTreatment();
-		// TODO finish this
-
-		// End TODO
+		treatment.setId(tid);
+		treatment.setDiagnosis(diagnosis);
+		treatment.setSurgeryDate(date);
+		treatment.setDischargeInstructions(dischargeInstructions);
+		provider.addTreatment(treatment);
+		patient.addTreatment(treatment);
+		treatmentDao.addTreatment(treatment);
+		if (consumer != null) {
+			consumer.accept(treatment);
+		}
+		return (followUp) -> { treatment.addFollowupTreatment(followUp); };
 	}
 
 	@Override

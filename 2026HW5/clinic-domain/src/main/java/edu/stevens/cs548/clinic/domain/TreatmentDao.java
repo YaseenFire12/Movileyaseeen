@@ -1,6 +1,7 @@
 package edu.stevens.cs548.clinic.domain;
 
 import jakarta.enterprise.context.RequestScoped;
+import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
 import jakarta.transaction.Transactional;
@@ -8,16 +9,19 @@ import java.util.List;
 import java.util.UUID;
 import org.jboss.logging.Logger;
 
-// TODO
+@RequestScoped
+@Transactional
 public class TreatmentDao implements ITreatmentDao {
-
-    // TODO inject these fields (use constructor injection)
 
     private final Logger logger;
 
 	private final EntityManager em;
 
-
+	@Inject
+	public TreatmentDao(Logger logger, EntityManager em) {
+		this.logger = logger;
+		this.em = em;
+	}
 
 	@Override
 	public Treatment getTreatment(UUID id) throws TreatmentExn {

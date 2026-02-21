@@ -1,13 +1,8 @@
 package edu.stevens.cs548.clinic.domain;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Inheritance;
-import jakarta.persistence.InheritanceType;
-import jakarta.persistence.ManyToOne;
+import jakarta.persistence.*;
 import jakarta.persistence.NamedQueries;
 import jakarta.persistence.NamedQuery;
-import jakarta.persistence.OneToMany;
 import java.io.Serial;
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -19,10 +14,8 @@ import static jakarta.persistence.CascadeType.ALL;
 import static jakarta.persistence.FetchType.EAGER;
 
 
-/**
- * Entity implementation class for Entity: Treatment
- *
- */
+@Entity
+@Inheritance(strategy = InheritanceType.JOINED)
 @NamedQueries({
 	@NamedQuery(
 		name="SearchTreatmentByTreatmentId",
@@ -37,15 +30,12 @@ import static jakarta.persistence.FetchType.EAGER;
 		name = "RemoveAllTreatments", 
 		query = "delete from Treatment t")
 })
-
-// TODO
-
 public abstract class Treatment implements Serializable {
 
     @Serial
     private static final long serialVersionUID = 1L;
 
-    // TODO PK (Do NOT auto-generate)
+    @Id
     protected UUID id;
 
 	protected String diagnosis;
@@ -67,9 +57,7 @@ public abstract class Treatment implements Serializable {
 		this.diagnosis = diagnosis;
 	}
 
-	/*
-	 * TODO
-	 */
+	@ManyToOne(cascade = CascadeType.PERSIST)
 	protected Patient patient;
 
 	public Patient getPatient() {
@@ -81,9 +69,7 @@ public abstract class Treatment implements Serializable {
 		this.patient = patient;
 	}
 
-	/*
-	 * TODO
-	 */
+	@ManyToOne(cascade = CascadeType.PERSIST)
 	protected Provider provider;
 
 	public Provider getProvider() {
@@ -92,11 +78,9 @@ public abstract class Treatment implements Serializable {
 	
 	public void setProvider(Provider provider) {
 		this.provider = provider;
-	}	
-	
-	/*
-	 * TODO
-	 */
+	}
+
+	@OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
 	protected Collection<Treatment> followupTreatments;
 	
 	public void addFollowupTreatment(Treatment t) {
@@ -120,8 +104,6 @@ public abstract class Treatment implements Serializable {
 	
 	public Treatment() {
 		super();
-		/*
-		 * TODO initialize lists
-		 */
+		followupTreatments = new ArrayList<Treatment>();
 	}
 }
