@@ -89,7 +89,6 @@ public class PatientService implements IPatientService {
 	 */
 	public PatientDto getPatient(UUID id, boolean includeTreatments) throws PatientServiceExn {
         logger.info("Getting patient " + id);
-		// TODO use DAO to get patient by external key, create DTO that includes treatments
         try {
             Patient patient = patientDao.getPatient(id, includeTreatments);
             return patientToDto(patient, includeTreatments);

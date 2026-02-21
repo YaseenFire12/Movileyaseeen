@@ -10,8 +10,7 @@ import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.UriInfo;
 import java.util.UUID;
 import org.jboss.logging.Logger;
-
-// TODO
+import jakarta.inject.Inject;
 
 @Path("/patient")
 public class PatientController {
@@ -19,11 +18,15 @@ public class PatientController {
     @Context
     private UriInfo uriInfo;
 
-    // TODO inject using constructor injection
-
     private final IPatientService patientService;
 
     private final Logger logger;
+
+    @Inject
+    public PatientController(IPatientService patientService, Logger logger) {
+        this.patientService = patientService;
+        this.logger = logger;
+    }
 
 
     @GET
