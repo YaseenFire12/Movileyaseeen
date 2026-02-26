@@ -1,0 +1,49 @@
+{#include base}
+    {#title}Surgery Treatment{/title}
+    <h2>Surgery Treatment</h2>
+    <p>
+    <table>
+        <tr>
+            <td>Patient:</td>
+            <td><a href="{tmt:patientLink(uri, treatment.patientId)}">{treatment.patientName}</a></td>
+        </tr>
+        <tr>
+            <td>Provider:</td>
+            <td><a href="{tmt:providerLink(uri, treatment.providerId)}">{treatment.providerName}</a></td>
+        </tr>
+        <tr>
+            <td>Diagnosis:</td>
+            <td>{treatment.diagnosis}</td>
+        </tr>
+        <tr>
+            <td>Surgery Date:</td>
+            <td>{treatment.surgeryDate.format('d MMM uuuu')}</td>
+        </tr>
+        <tr>
+            <td>Discharge Instructions:</td>
+            <td>{treatment.dischargeInstructions}</td>
+        </tr>
+    </table>
+
+    {#if ! treatment.followupTreatments.isEmpty()}
+        <h3>Follow-Up Treatments</h3>
+        <table class="gridTable">
+            <tr>
+                <th>Patient</th>
+                <th>Provider</th>
+                <th>Type</th>
+                <th>Diagnosis</th>
+            </tr>
+
+            {#for t in treatment.followupTreatments}
+                <tr>
+                    <td><a href="{tmt:treatmentLink(uri, t.providerId, t.id)}">{tmt:treatmentType(t)}</a></td>
+                    <td><a href="{tmt:patientLink(uri, t.patientId)}">{t.patientName}</a></td>
+                    <td><a href="{tmt:providerLink(uri, t.providerId)}">{t.providerName}</a></td>
+                    <td>{t.diagnosis}</td>
+                </tr>
+            {/for}
+        </table>
+    {/if}
+
+{/include}

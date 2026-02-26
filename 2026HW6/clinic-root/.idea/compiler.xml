@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CompilerConfiguration">
+    <annotationProcessing>
+      <profile name="Maven default annotation processors profile" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <module name="clinic-rest-client" />
+        <module name="clinic-domain" />
+        <module name="clinic-rest" />
+        <module name="clinic-webapp" />
+        <module name="clinic-init" />
+        <module name="clinic-service" />
+        <module name="clinic-dto" />
+        <module name="clinic-service-client" />
+      </profile>
+    </annotationProcessing>
+  </component>
+  <component name="JavacSettings">
+    <option name="ADDITIONAL_OPTIONS_OVERRIDE">
+      <module name="clinic-domain" options="-parameters" />
+      <module name="clinic-dto" options="-parameters" />
+      <module name="clinic-init" options="-parameters" />
+      <module name="clinic-rest" options="-parameters" />
+      <module name="clinic-rest-client" options="-parameters" />
+      <module name="clinic-service" options="-parameters" />
+      <module name="clinic-service-client" options="-parameters" />
+      <module name="clinic-webapp" options="-parameters" />
+    </option>
+  </component>
+</project>
