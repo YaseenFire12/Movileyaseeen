@@ -20,13 +20,15 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
+
 import org.jboss.logging.Logger;
 
 @ApplicationScoped
 @Transactional
 public class InitBean {
-
 
 	private static final ZoneId ZONE_ID = ZoneOffset.UTC;
 
@@ -36,15 +38,17 @@ public class InitBean {
 
 	private final TreatmentDtoFactory treatmentFactory = new TreatmentDtoFactory();
 
-    // TODO inject the services using constructor injection
-
 	private final IPatientService patientService;
 
 	private final IProviderService providerService;
 
-    private final Logger logger;
+	private final Logger logger;
 
-
+	public InitBean(IPatientService patientService, IProviderService providerService, Logger logger) {
+		this.patientService = patientService;
+		this.providerService = providerService;
+		this.logger = logger;
+	}
 
 	public void init(@Observes StartupEvent event) {
 		/*
@@ -68,33 +72,80 @@ public class InitBean {
 			john.setName("John Doe");
 			john.setDob(LocalDate.parse("1995-08-15"));
 
-			logger.info("Adding patient John....");
+			logger.info("Adding patient John Doe...");
 			john.setId(patientService.addPatient(john));
 
-			ProviderDto jane = providerFactory.createProviderDto();
-			jane.setName("Jane Doe");
-			jane.setNpi("1234");
+			PatientDto jane = patientFactory.createPatientDto();
+			jane.setName("Jane Smith");
+			jane.setDob(LocalDate.parse("1988-03-22"));
 
-			logger.info("Adding provider Jane....");
-			jane.setId(providerService.addProvider(jane));
+			logger.info("Adding patient Jane Smith...");
+			jane.setId(patientService.addPatient(jane));
+
+			ProviderDto drHouse = providerFactory.createProviderDto();
+			drHouse.setName("Dr. Gregory House");
+			drHouse.setNpi("1234567890");
+
+			logger.info("Adding provider Dr. House...");
+			drHouse.setId(providerService.addProvider(drHouse));
+
+			ProviderDto drWilson = providerFactory.createProviderDto();
+			drWilson.setName("Dr. James Wilson");
+			drWilson.setNpi("0987654321");
+
+			logger.info("Adding provider Dr. Wilson...");
+			drWilson.setId(providerService.addProvider(drWilson));
 
 			DrugTreatmentDto drug01 = treatmentFactory.createDrugTreatmentDto();
 			drug01.setPatientId(john.getId());
 			drug01.setPatientName(john.getName());
-			drug01.setProviderId(jane.getId());
-			drug01.setProviderName(jane.getName());
+			drug01.setProviderId(drHouse.getId());
+			drug01.setProviderName(drHouse.getName());
 			drug01.setDiagnosis("Headache");
 			drug01.setDrug("Aspirin");
-			drug01.setDosage(20);
-			drug01.setFrequency(7);
+			drug01.setDosage(500);
+			drug01.setFrequency(3);
 			drug01.setStartDate(LocalDate.ofInstant(Instant.now(), ZONE_ID));
-			drug01.setEndDate(LocalDate.ofInstant(Instant.now(), ZONE_ID));
-
-			logger.info("Adding John's drug01 treatment");
+			drug01.setEndDate(LocalDate.ofInstant(Instant.now(), ZONE_ID).plusDays(7));
+			logger.info("Adding John's drug treatment (Aspirin)...");
 			providerService.addTreatment(drug01);
 
-			// TODO add more testing, including treatments and providers
+			RadiologyTreatmentDto radiology01 = treatmentFactory.createRadiologyTreatmentDto();
+			radiology01.setPatientId(jane.getId());
+			radiology01.setPatientName(jane.getName());
+			radiology01.setProviderId(drWilson.getId());
+			radiology01.setProviderName(drWilson.getName());
+			radiology01.setDiagnosis("Possible fracture");
+			List<LocalDate> radiologyDates = new ArrayList<>();
+			radiologyDates.add(LocalDate.ofInstant(Instant.now(), ZONE_ID));
+			radiology01.setTreatmentDates(radiologyDates);
+			logger.info("Adding Jane's radiology treatment...");
+			providerService.addTreatment(radiology01);
 
+			SurgeryTreatmentDto surgery01 = treatmentFactory.createSurgeryTreatmentDto();
+			surgery01.setPatientId(john.getId());
+			surgery01.setPatientName(john.getName());
+			surgery01.setProviderId(drHouse.getId());
+			surgery01.setProviderName(drHouse.getName());
+			surgery01.setDiagnosis("Appendicitis");
+			surgery01.setSurgeryDate(LocalDate.ofInstant(Instant.now(), ZONE_ID));
+			surgery01.setDischargeInstructions("Rest for 2 weeks, no heavy lifting");
+			logger.info("Adding John's surgery treatment...");
+			providerService.addTreatment(surgery01);
+
+			PhysiotherapyTreatmentDto physio01 = treatmentFactory.createPhysiotherapyTreatmentDto();
+			physio01.setPatientId(jane.getId());
+			physio01.setPatientName(jane.getName());
+			physio01.setProviderId(drWilson.getId());
+			physio01.setProviderName(drWilson.getName());
+			physio01.setDiagnosis("Knee pain");
+			List<LocalDate> physioDates = new ArrayList<>();
+			physioDates.add(LocalDate.ofInstant(Instant.now(), ZONE_ID));
+			physioDates.add(LocalDate.ofInstant(Instant.now(), ZONE_ID).plusDays(7));
+			physioDates.add(LocalDate.ofInstant(Instant.now(), ZONE_ID).plusDays(14));
+			physio01.setTreatmentDates(physioDates);
+			logger.info("Adding Jane's physiotherapy treatment...");
+			providerService.addTreatment(physio01);
 
 			// Now show in the logs what has been added
 
@@ -116,17 +167,17 @@ public class InitBean {
 			throw new IllegalStateException("Failed to add record.", e);
 
 		}
-		
+
 	}
 
 	private void logTreatments(Collection<TreatmentDto> treatments) {
 		for (TreatmentDto treatment : treatments) {
 			switch (treatment) {
-                case DrugTreatmentDto drugTreatmentDto -> logTreatment(drugTreatmentDto);
-                case PhysiotherapyTreatmentDto physiotherapyTreatmentDto -> logTreatment(physiotherapyTreatmentDto);
-                case RadiologyTreatmentDto radiologyTreatmentDto -> logTreatment(radiologyTreatmentDto);
-                case SurgeryTreatmentDto surgeryTreatmentDto -> logTreatment(surgeryTreatmentDto);
-            }
+				case DrugTreatmentDto drugTreatmentDto -> logTreatment(drugTreatmentDto);
+				case PhysiotherapyTreatmentDto physiotherapyTreatmentDto -> logTreatment(physiotherapyTreatmentDto);
+				case RadiologyTreatmentDto radiologyTreatmentDto -> logTreatment(radiologyTreatmentDto);
+				case SurgeryTreatmentDto surgeryTreatmentDto -> logTreatment(surgeryTreatmentDto);
+			}
 			if (!treatment.getFollowupTreatments().isEmpty()) {
 				logger.info("============= Follow-up Treatments");
 				logTreatments(treatment.getFollowupTreatments());

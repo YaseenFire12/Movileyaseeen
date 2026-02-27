@@ -10,10 +10,8 @@ public class ObjectMapperFactory {
 
     public static void customize(ObjectMapper objectMapper) {
         objectMapper
-                /*
-                 * TODO add modules for Java Time and Sealed Classes
-                 */
-
+                .registerModule(new JavaTimeModule())
+                .registerModule(new Jdk17SealedClassesModule())
                 .enable(SerializationFeature.INDENT_OUTPUT)
                 .configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
     }

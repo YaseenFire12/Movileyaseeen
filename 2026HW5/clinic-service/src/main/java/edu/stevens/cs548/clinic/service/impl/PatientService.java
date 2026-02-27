@@ -12,6 +12,9 @@ import edu.stevens.cs548.clinic.service.IPatientService;
 import edu.stevens.cs548.clinic.service.dto.PatientDto;
 import edu.stevens.cs548.clinic.service.dto.PatientDtoFactory;
 import edu.stevens.cs548.clinic.service.dto.TreatmentDto;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.transaction.Transactional;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -21,28 +24,33 @@ import org.jboss.logging.Logger;
 /**
  * CDI Bean implementation class PatientService
  */
-// TODO
+
+@ApplicationScoped
+@Transactional
 public class PatientService implements IPatientService {
 
-    // TODO inject with constructor injection
 	@SuppressWarnings("unused")
 	private final Logger logger;
 
-    private final IPatientDao patientDao;
-	// End TODO
+	private final IPatientDao patientDao;
 
-    private final IPatientFactory patientFactory = new PatientFactory();
-	
-	private final PatientDtoFactory patientDtoFactory =  new PatientDtoFactory();
+	public PatientService(Logger logger, IPatientDao patientDao) {
+		this.logger = logger;
+		this.patientDao = patientDao;
+	}
 
-    private final TimeBasedEpochGenerator uuidGenerator = Generators.timeBasedEpochGenerator();
+	private final IPatientFactory patientFactory = new PatientFactory();
+
+	private final PatientDtoFactory patientDtoFactory = new PatientDtoFactory();
+
+	private final TimeBasedEpochGenerator uuidGenerator = Generators.timeBasedEpochGenerator();
 
 	/**
 	 * Add a patient.
 	 */
 	@Override
 	public UUID addPatient(PatientDto dto) throws PatientServiceExn {
-        logger.info("Adding patient " + dto.getName());
+		logger.info("Adding patient " + dto.getName());
 		// Use factory to create patient entity, and persist with DAO
 		try {
 			Patient patient = patientFactory.createPatient();
@@ -62,7 +70,7 @@ public class PatientService implements IPatientService {
 
 	@Override
 	public List<PatientDto> getPatients() throws PatientServiceExn {
-        logger.info("Getting all patients");
+		logger.info("Getting all patients");
 		Collection<Patient> patients = patientDao.getPatients();
 		List<PatientDto> dtos = new ArrayList<>();
 		try {
@@ -74,21 +82,21 @@ public class PatientService implements IPatientService {
 		}
 		return dtos;
 	}
-	
+
 	@Override
 	/*
 	 * The boolean flag indicates if related treatments should be loaded eagerly.
 	 */
 	public PatientDto getPatient(UUID id, boolean includeTreatments) throws PatientServiceExn {
-        logger.info("Getting patient " + id);
-        try {
-            Patient patient = patientDao.getPatient(id, includeTreatments);
-            return patientToDto(patient, includeTreatments);
-        } catch (PatientExn e) {
-            throw new PatientNotFoundExn("Failed to get patient", e);
-        } catch (TreatmentExn e) {
-            throw new PatientServiceExn("Failed to export treatments", e);
-        }
+		logger.info("Getting patient " + id);
+		try {
+			Patient patient = patientDao.getPatient(id, includeTreatments);
+			return patientToDto(patient, includeTreatments);
+		} catch (PatientExn e) {
+			throw new PatientNotFoundExn("Failed to get patient", e);
+		} catch (TreatmentExn e) {
+			throw new PatientServiceExn("Failed to export treatments", e);
+		}
 	}
 
 	@Override
@@ -118,7 +126,7 @@ public class PatientService implements IPatientService {
 			Patient patient = patientDao.getPatient(patientId);
 			return patient.exportTreatment(treatmentId, TreatmentExporter.exportWithFollowups());
 		} catch (PatientExn e) {
-			throw new PatientNotFoundExn("Patient not found: "+patientId, e);
+			throw new PatientNotFoundExn("Patient not found: " + patientId, e);
 		} catch (TreatmentExn e) {
 			throw new PatientServiceExn("Failed to export treatment", e);
 		}

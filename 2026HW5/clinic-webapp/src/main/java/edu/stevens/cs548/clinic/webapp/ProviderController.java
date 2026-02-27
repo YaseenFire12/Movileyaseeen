@@ -8,6 +8,7 @@ import edu.stevens.cs548.clinic.service.dto.RadiologyTreatmentDto;
 import edu.stevens.cs548.clinic.service.dto.SurgeryTreatmentDto;
 import edu.stevens.cs548.clinic.service.dto.TreatmentDto;
 import io.quarkus.qute.TemplateInstance;
+import jakarta.enterprise.context.RequestScoped;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
@@ -16,20 +17,21 @@ import jakarta.ws.rs.core.UriInfo;
 import java.util.UUID;
 import org.jboss.logging.Logger;
 
-// TODO
-
+@RequestScoped
 @Path("/provider")
 public class ProviderController {
 
     @Context
     private UriInfo uriInfo;
 
-    // TODO inject using constructor injection
+    public ProviderController(IProviderService providerService, Logger logger) {
+        this.providerService = providerService;
+        this.logger = logger;
+    }
 
     private final IProviderService providerService;
 
     private final Logger logger;
-
 
     @GET
     public TemplateInstance getProviders() {
@@ -60,7 +62,7 @@ public class ProviderController {
         logger.info("Looking up treatment with tid: " + tid);
         try {
             TreatmentDto treatmentDto = providerService.getTreatment(UUID.fromString(id), UUID.fromString(tid));
-            switch(treatmentDto) {
+            switch (treatmentDto) {
                 case DrugTreatmentDto drugTreatmentDto -> {
                     return Templates.drugTreatment(uriInfo.getBaseUri(), drugTreatmentDto);
                 }
@@ -75,9 +77,11 @@ public class ProviderController {
                 }
             }
         } catch (IllegalArgumentException e) {
-            throw new IllegalArgumentException(String.format("Fatal error while parsing provider %s or treatment %s", id, tid), e);
+            throw new IllegalArgumentException(
+                    String.format("Fatal error while parsing provider %s or treatment %s", id, tid), e);
         } catch (ProviderServiceExn e) {
-            throw new IllegalStateException(String.format("Fatal error while querying for provider %s or treatment %s", id, tid), e);
+            throw new IllegalStateException(
+                    String.format("Fatal error while querying for provider %s or treatment %s", id, tid), e);
         }
     }
 

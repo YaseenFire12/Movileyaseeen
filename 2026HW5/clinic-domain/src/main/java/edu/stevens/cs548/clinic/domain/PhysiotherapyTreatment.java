@@ -8,12 +8,11 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
-// TODO
-
+@Entity
 public class PhysiotherapyTreatment extends Treatment {
 
 	@Serial
-    private static final long serialVersionUID = 5602950140629148756L;
+	private static final long serialVersionUID = 5602950140629148756L;
 
 	// Order by date
 	@ElementCollection
@@ -27,15 +26,15 @@ public class PhysiotherapyTreatment extends Treatment {
 	@Override
 	public <T> T export(ITreatmentExporter<T> visitor) {
 		return visitor.exportPhysiotherapy(id,
-				   patient.getId(),
-				   patient.getName(),
-				   provider.getId(),
-				   provider.getName(),
-				   diagnosis, 
-				   treatmentDates,
-				   () -> exportFollowupTreatments(visitor));	
+				patient.getId(),
+				patient.getName(),
+				provider.getId(),
+				provider.getName(),
+				diagnosis,
+				treatmentDates,
+				() -> exportFollowupTreatments(visitor));
 	}
-	
+
 	public PhysiotherapyTreatment() {
 		super();
 		treatmentDates = new ArrayList<>();
