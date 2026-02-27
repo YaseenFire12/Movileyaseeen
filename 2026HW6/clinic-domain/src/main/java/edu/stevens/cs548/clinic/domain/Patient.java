@@ -11,6 +11,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 
+import static jakarta.persistence.CascadeType.REMOVE;
+
 
 /**
  * Entity implementation class for Entity: Patient
@@ -72,7 +74,7 @@ public class Patient implements Serializable {
 	}
 
 
-	@OneToMany(mappedBy = "provider", cascade = CascadeType.REMOVE)
+	@OneToMany(mappedBy = "patient", cascade = REMOVE)
 	private Collection<Treatment> treatments;
 	
 
