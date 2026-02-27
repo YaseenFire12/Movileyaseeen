@@ -22,53 +22,36 @@ import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-// TODO
+@Path("provider")
+@RequestScoped
 public class ProviderResource extends ResourceBase {
-	
+
 	private final Logger logger = Logger.getLogger(ProviderResource.class.getCanonicalName());
 
-	// TODO
+	@Context
 	private UriInfo uriInfo;
 
-    // TODO inject this field with constructor injection
-	private final IProviderService providerService;
-
-
-	// TODO
+	public ProviderResource(IProviderService providerService) {
+		this.providerService = providerService;
+	}
 
 	/*
 	 * Return a provider DTO including the list of treatments they are administering.
 	 */
+	@GET
+	@Path("{id}")
+	@Produces("application/json")
 	public Response getProvider(@PathParam("id") String id) {
-		// TODO Complete this (see getPatient)
-        return null;
-
-	}
-
-	// TODO
-
-	public Response addProvider(ProviderDto providerDto) {
-		// TODO Complete this (see addPatient)
-		return null;
-
-	}
-	
-	// TODO
-
-	/*
-	 * Return a provider DTO including the list of treatments they are administering.
-	 */
-	public Response getTreatment(String id, String tid) {
 		try {
 			UUID providerId = UUID.fromString(id);
-			UUID treatmentId = UUID.fromString(tid);
-			TreatmentDto treatment = providerService.getTreatment(providerId, treatmentId);
-			ResponseBuilder responseBuilder = Response.ok(treatment);
-			/* 
-			 * TODO Add links for patient and provider in response headers.
+			ProviderDto provider = providerService.getProvider(providerId, true);
+			ResponseBuilder responseBuilder = Response.ok(provider);
+			/*
+			 * Add links for treatments in response headers.
 			 */
-
-			
+			for (TreatmentDto treatment : provider.getTreatments()) {
+				responseBuilder.link(getTreatmentUri(uriInfo, treatment.getProviderId(), treatment.getId()), TREATMENT);
+			}
 			return responseBuilder.build();
 		} catch (ProviderServiceExn e) {
 			logger.info("Failed to find provider with id "+id);
@@ -79,8 +62,48 @@ public class ProviderResource extends ResourceBase {
 		}
 	}
 
-	// TODO
+	@POST
+	@Consumes("application/json")
+	public Response addProvider(ProviderDto providerDto) {
+		try {
+			UUID id = providerService.addProvider(providerDto);
+			URI providerUri = getProviderUri(uriInfo, id);
+			return Response.created(providerUri).build();
+		} catch (ProviderServiceExn e) {
+			logger.log(Level.SEVERE, "Provider service request (addProvider) failed! ", e);
+			return Response.status(Status.BAD_REQUEST).build();
+		}
+	}
 
+	/*
+	 * Return a provider DTO including the list of treatments they are administering.
+	 */
+	@GET
+	@Path("{id}/treatment/{tid}")
+	@Produces("application/json")
+	public Response getTreatment(String id, String tid) {
+		try {
+			UUID providerId = UUID.fromString(id);
+			UUID treatmentId = UUID.fromString(tid);
+			TreatmentDto treatment = providerService.getTreatment(providerId, treatmentId);
+			ResponseBuilder responseBuilder = Response.ok(treatment);
+			responseBuilder.link(getPatientUri(uriInfo, treatment.getPatientId()), PATIENT);
+			responseBuilder.link(getProviderUri(uriInfo, treatment.getProviderId()), PROVIDER);
+
+
+			return responseBuilder.build();
+		} catch (ProviderServiceExn e) {
+			logger.info("Failed to find provider with id "+id);
+			return Response.status(Status.NOT_FOUND).build();
+		} catch (IllegalArgumentException e) {
+			logger.info("Badly formed provider id: "+id);
+			return Response.status(Status.BAD_REQUEST).build();
+		}
+	}
+
+	@POST
+	@Path("{id}/treatment")
+	@Consumes("application/json")
 	public Response addTreatment(String providerId, TreatmentDto treatmentDto) {
 		String treatmentProvider = treatmentDto.getProviderId().toString();
 		if (!providerId.equals(treatmentProvider)) {

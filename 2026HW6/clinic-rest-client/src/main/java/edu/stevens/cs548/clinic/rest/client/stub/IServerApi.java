@@ -20,7 +20,6 @@ public interface IServerApi {
     @POST("provider")
     public Call<Void> addProvider(@Body ProviderDto providerDto);
 
-    // TODO annotations
-    public Call<Void> addTreatment(String providerId, TreatmentDto treatmentDto);
-
+    @POST("provider/{id}/treatment")  // Add this
+    public Call<Void> addTreatment(@Path("id") String providerId, @Body TreatmentDto treatmentDto);
 }

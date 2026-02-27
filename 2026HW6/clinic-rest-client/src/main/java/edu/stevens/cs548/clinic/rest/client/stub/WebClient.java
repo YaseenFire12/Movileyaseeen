@@ -33,18 +33,18 @@ public class WebClient {
          * Create the HTTP client stub.
          */
         OkHttpClient httpClient = new OkHttpClient.Builder().build();
-        
+
         /*
          * Gson converter
          */
         ObjectMapper objectMapper = ObjectMapperFactory.createObjectMapper();
 
-        Retrofit retrofit = null;
-        /*
-         * TODO Wrap the okhttp client with a retrofit stub factory.
-         */
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl(baseUri.toString())
+                .client(httpClient)
+                .addConverterFactory(JacksonConverterFactory.create(objectMapper))
+                .build();
 
-        
         /*
          * Create the stub that will be used for Web service calls
          */
@@ -70,9 +70,16 @@ public class WebClient {
     }
 
     public URI addTreatment(TreatmentDto treatmentDto) throws IOException {
-        // TODO Finish this
-        return null;
+        Response<Void> response = client.addTreatment(
+                treatmentDto.getProviderId().toString(),
+                treatmentDto
+        ).execute();
 
+        if (response.isSuccessful()) {
+            return URI.create(Objects.requireNonNull(response.headers().get(LOCATION)));
+        } else {
+            throw new IOException("Web service (POST /.../treatment) failure: " + response.code());
+        }
     }
 
 }
