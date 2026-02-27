@@ -7,19 +7,25 @@ import java.util.List;
 import java.util.UUID;
 import org.jboss.logging.Logger;
 
-// TODO
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
+import jakarta.transaction.Transactional;
 
+@ApplicationScoped
+@Transactional
 public class PatientDao implements IPatientDao {
 
-    // TODO inject these fields (use constructor injection)
-    private final Logger logger;
+	private final Logger logger;
 
-    private final EntityManager em;
+	private final EntityManager em;
 
-    private final ITreatmentDao treatmentDao;
+	private final ITreatmentDao treatmentDao;
 
-
-
+	public PatientDao(Logger logger, EntityManager em, ITreatmentDao treatmentDao) {
+		this.logger = logger;
+		this.em = em;
+		this.treatmentDao = treatmentDao;
+	}
 
 	@Override
 	public void addPatient(Patient patient) throws PatientExn {
@@ -27,21 +33,21 @@ public class PatientDao implements IPatientDao {
 		UUID pid = patient.getId();
 		Query query = em.createNamedQuery("CountPatientByPatientId").setParameter("patientId", pid);
 		Long numExisting = (Long) query.getSingleResult();
-		
+
 		logger.info(String.format("Adding patient with id %s, found %d existing records", pid, numExisting));
-		
+
 		if (numExisting < 1) {
-			
+
 			// Add to database, and initialize the patient aggregate with a treatment DAO.
 			em.persist(patient);
 			patient.setTreatmentDao(this.treatmentDao);
-			
+
 		} else {
-			
+
 			throw new PatientExn("Insertion: Patient with patient id (" + pid + ") already exists.");
 		}
 	}
-	
+
 	@Override
 	/*
 	 * The Boolean flag indicates if related treatments should be loaded eagerly.
@@ -50,11 +56,12 @@ public class PatientDao implements IPatientDao {
 		/*
 		 * Retrieve patient using external key
 		 */
-		// String queryName = includeTreatments ? "SearchPatientWithTreatmentsByPatientId" : "SearchPatientByPatientId";
+		// String queryName = includeTreatments ?
+		// "SearchPatientWithTreatmentsByPatientId" : "SearchPatientByPatientId";
 		String queryName = "SearchPatientByPatientId";
-		TypedQuery<Patient> query = em.createNamedQuery(queryName, Patient.class).setParameter("patientId",id);
+		TypedQuery<Patient> query = em.createNamedQuery(queryName, Patient.class).setParameter("patientId", id);
 		List<Patient> patients = query.getResultList();
-		
+
 		if (patients.size() > 1) {
 			throw new PatientExn("Duplicate patient records: patient id = " + id);
 		} else if (patients.isEmpty()) {
@@ -82,14 +89,14 @@ public class PatientDao implements IPatientDao {
 		 */
 		TypedQuery<Patient> query = em.createNamedQuery("SearchAllPatients", Patient.class);
 		List<Patient> patients = query.getResultList();
-		
+
 		for (Patient p : patients) {
 			p.setTreatmentDao(treatmentDao);
 		}
 
 		return patients;
 	}
-	
+
 	@Override
 	public void deletePatients() {
 		Query update = em.createNamedQuery("RemoveAllPatients");

@@ -27,7 +27,6 @@ import org.jboss.logging.Logger;
 @Transactional
 public class InitBean {
 
-
 	private static final ZoneId ZONE_ID = ZoneOffset.UTC;
 
 	private final PatientDtoFactory patientFactory = new PatientDtoFactory();
@@ -36,15 +35,17 @@ public class InitBean {
 
 	private final TreatmentDtoFactory treatmentFactory = new TreatmentDtoFactory();
 
-    // TODO inject the services using constructor injection
-
 	private final IPatientService patientService;
 
 	private final IProviderService providerService;
 
-    private final Logger logger;
+	private final Logger logger;
 
-
+	public InitBean(IPatientService patientService, IProviderService providerService, Logger logger) {
+		this.patientService = patientService;
+		this.providerService = providerService;
+		this.logger = logger;
+	}
 
 	public void init(@Observes StartupEvent event) {
 		/*
@@ -95,7 +96,6 @@ public class InitBean {
 
 			// TODO add more testing, including treatments and providers
 
-
 			// Now show in the logs what has been added
 
 			Collection<PatientDto> patients = patientService.getPatients();
@@ -116,17 +116,17 @@ public class InitBean {
 			throw new IllegalStateException("Failed to add record.", e);
 
 		}
-		
+
 	}
 
 	private void logTreatments(Collection<TreatmentDto> treatments) {
 		for (TreatmentDto treatment : treatments) {
 			switch (treatment) {
-                case DrugTreatmentDto drugTreatmentDto -> logTreatment(drugTreatmentDto);
-                case PhysiotherapyTreatmentDto physiotherapyTreatmentDto -> logTreatment(physiotherapyTreatmentDto);
-                case RadiologyTreatmentDto radiologyTreatmentDto -> logTreatment(radiologyTreatmentDto);
-                case SurgeryTreatmentDto surgeryTreatmentDto -> logTreatment(surgeryTreatmentDto);
-            }
+				case DrugTreatmentDto drugTreatmentDto -> logTreatment(drugTreatmentDto);
+				case PhysiotherapyTreatmentDto physiotherapyTreatmentDto -> logTreatment(physiotherapyTreatmentDto);
+				case RadiologyTreatmentDto radiologyTreatmentDto -> logTreatment(radiologyTreatmentDto);
+				case SurgeryTreatmentDto surgeryTreatmentDto -> logTreatment(surgeryTreatmentDto);
+			}
 			if (!treatment.getFollowupTreatments().isEmpty()) {
 				logger.info("============= Follow-up Treatments");
 				logTreatments(treatment.getFollowupTreatments());

@@ -36,7 +36,8 @@ public class ProviderResource extends ResourceBase {
 	}
 
 	/*
-	 * Return a provider DTO including the list of treatments they are administering.
+	 * Return a provider DTO including the list of treatments they are
+	 * administering.
 	 */
 	@GET
 	@Path("{id}")
@@ -54,10 +55,10 @@ public class ProviderResource extends ResourceBase {
 			}
 			return responseBuilder.build();
 		} catch (ProviderServiceExn e) {
-			logger.info("Failed to find provider with id "+id);
+			logger.info("Failed to find provider with id " + id);
 			return Response.status(Status.NOT_FOUND).build();
 		} catch (IllegalArgumentException e) {
-			logger.info("Badly formed provider id: "+id);
+			logger.info("Badly formed provider id: " + id);
 			return Response.status(Status.BAD_REQUEST).build();
 		}
 	}
@@ -76,7 +77,8 @@ public class ProviderResource extends ResourceBase {
 	}
 
 	/*
-	 * Return a provider DTO including the list of treatments they are administering.
+	 * Return a provider DTO including the list of treatments they are
+	 * administering.
 	 */
 	@GET
 	@Path("{id}/treatment/{tid}")
@@ -90,13 +92,12 @@ public class ProviderResource extends ResourceBase {
 			responseBuilder.link(getPatientUri(uriInfo, treatment.getPatientId()), PATIENT);
 			responseBuilder.link(getProviderUri(uriInfo, treatment.getProviderId()), PROVIDER);
 
-
 			return responseBuilder.build();
 		} catch (ProviderServiceExn e) {
-			logger.info("Failed to find provider with id "+id);
+			logger.info("Failed to find provider with id " + id);
 			return Response.status(Status.NOT_FOUND).build();
 		} catch (IllegalArgumentException e) {
-			logger.info("Badly formed provider id: "+id);
+			logger.info("Badly formed provider id: " + id);
 			return Response.status(Status.BAD_REQUEST).build();
 		}
 	}
@@ -107,13 +108,14 @@ public class ProviderResource extends ResourceBase {
 	public Response addTreatment(String providerId, TreatmentDto treatmentDto) {
 		String treatmentProvider = treatmentDto.getProviderId().toString();
 		if (!providerId.equals(treatmentProvider)) {
-			logger.severe(String.format("Provider in path %s does not match provider in body %s!", providerId, treatmentProvider));
+			logger.severe(String.format("Provider in path %s does not match provider in body %s!", providerId,
+					treatmentProvider));
 			return Response.status(Status.BAD_REQUEST).build();
 		}
 		try {
 			UUID id = providerService.addTreatment(treatmentDto);
 			return Response.created(getTreatmentUri(uriInfo, UUID.fromString(providerId), id)).build();
-		} catch (ProviderServiceExn|PatientServiceExn e) {
+		} catch (ProviderServiceExn | PatientServiceExn e) {
 			logger.log(Level.SEVERE, "Provider service request (addTreatment) failed! ", e);
 			return Response.status(Status.BAD_REQUEST).build();
 		}

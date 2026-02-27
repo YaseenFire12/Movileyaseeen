@@ -8,19 +8,17 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
-//TODO JPA annotations
+@Entity
 public class RadiologyTreatment extends Treatment {
 
 	/**
 	 * 
 	 */
 	@Serial
-    private static final long serialVersionUID = -3656673416179492428L;
+	private static final long serialVersionUID = -3656673416179492428L;
 
-	/*
-	 * TODO Order by date
-	 */
-
+	@ElementCollection
+	@OrderBy
 	protected List<LocalDate> treatmentDates;
 
 	public void addTreatmentDate(LocalDate date) {
@@ -29,13 +27,19 @@ public class RadiologyTreatment extends Treatment {
 
 	@Override
 	public <T> T export(ITreatmentExporter<T> visitor) {
-		// TODO export radiology information.
-
+		return visitor.exportRadiology(id,
+				patient.getId(),
+				patient.getName(),
+				provider.getId(),
+				provider.getName(),
+				diagnosis,
+				treatmentDates,
+				() -> exportFollowupTreatments(visitor));
 	}
-	
+
 	public RadiologyTreatment() {
 		super();
 		treatmentDates = new ArrayList<>();
 	}
-	
+
 }

@@ -15,9 +15,15 @@ import edu.stevens.cs548.clinic.service.IPatientService.PatientNotFoundExn;
 import edu.stevens.cs548.clinic.service.IPatientService.PatientServiceExn;
 import edu.stevens.cs548.clinic.service.IProviderService;
 import edu.stevens.cs548.clinic.service.dto.DrugTreatmentDto;
+import edu.stevens.cs548.clinic.service.dto.PhysiotherapyTreatmentDto;
 import edu.stevens.cs548.clinic.service.dto.ProviderDto;
 import edu.stevens.cs548.clinic.service.dto.ProviderDtoFactory;
+import edu.stevens.cs548.clinic.service.dto.RadiologyTreatmentDto;
+import edu.stevens.cs548.clinic.service.dto.SurgeryTreatmentDto;
 import edu.stevens.cs548.clinic.service.dto.TreatmentDto;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.transaction.Transactional;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -28,10 +34,9 @@ import org.jboss.logging.Logger;
 /**
  * CDI Bean implementation class ProviderService
  */
-// TODO
+@ApplicationScoped
+@Transactional
 public class ProviderService implements IProviderService {
-
-    // TODO inject with constructor injection
 
     @SuppressWarnings("unused")
     private final Logger logger;
@@ -46,7 +51,14 @@ public class ProviderService implements IProviderService {
 
     private final TimeBasedEpochGenerator uuidGenerator = Generators.timeBasedEpochGenerator();
 
-
+    public ProviderService(Logger logger, IProviderDao providerDao, IPatientDao patientDao,
+            IProviderFactory providerFactory) {
+        this.logger = logger;
+        this.providerDao = providerDao;
+        this.patientDao = patientDao;
+        this.providerFactory = providerFactory;
+        this.providerDtoFactory = new ProviderDtoFactory();
+    }
 
     /**
      * @see IProviderService#addProvider(ProviderDto dto)
@@ -94,8 +106,14 @@ public class ProviderService implements IProviderService {
      */
     public ProviderDto getProvider(UUID id, boolean includeTreatments) throws ProviderServiceExn {
         logger.info("Getting provider " + id);
-        // TODO use DAO to get Provider by key
-
+        try {
+            Provider provider = providerDao.getProvider(id, includeTreatments);
+            return providerToDto(provider, includeTreatments);
+        } catch (ProviderExn e) {
+            throw new ProviderNotFoundExn("Failed to get provider", e);
+        } catch (TreatmentExn e) {
+            throw new ProviderServiceExn("Failed to export treatments", e);
+        }
     }
 
     @Override
@@ -134,11 +152,11 @@ public class ProviderService implements IProviderService {
             Patient patient = patientDao.getPatient(dto.getPatientId());
 
             /*
-             * Provider aggregate imports the treatment information and creates the treatment entity,
+             * Provider aggregate imports the treatment information and creates the
+             * treatment entity,
              * returning a consumer to add follow-up treatments.
              */
             Consumer<Treatment> followUpsConsumer;
-
             switch (dto) {
 
                 case DrugTreatmentDto drugTreatmentDto -> {
@@ -147,12 +165,25 @@ public class ProviderService implements IProviderService {
                             drugTreatmentDto.getDrug(), drugTreatmentDto.getDosage(), drugTreatmentDto.getStartDate(),
                             drugTreatmentDto.getEndDate(), drugTreatmentDto.getFrequency(), parentFollowUps);
                 }
-                /*
-                 * TODO Handle the other cases
-                 */
 
+                case RadiologyTreatmentDto radiologyTreatmentDto -> {
 
+                    followUpsConsumer = provider.importRadiology(dto.getId(), patient, provider, dto.getDiagnosis(),
+                            radiologyTreatmentDto.getTreatmentDates(), parentFollowUps);
+                }
 
+                case SurgeryTreatmentDto surgeryTreatmentDto -> {
+
+                    followUpsConsumer = provider.importSurgery(dto.getId(), patient, provider, dto.getDiagnosis(),
+                            surgeryTreatmentDto.getSurgeryDate(), surgeryTreatmentDto.getDischargeInstructions(),
+                            parentFollowUps);
+                }
+
+                case PhysiotherapyTreatmentDto physiotherapyTreatmentDto -> {
+
+                    followUpsConsumer = provider.importPhysiotherapy(dto.getId(), patient, provider, dto.getDiagnosis(),
+                            physiotherapyTreatmentDto.getTreatmentDates(), parentFollowUps);
+                }
             }
 
             /*
@@ -192,7 +223,6 @@ public class ProviderService implements IProviderService {
             throw new ProviderNotFoundExn("Could not find provider for " + providerId, e);
         }
     }
-
 
     @Override
     public void removeAll() throws ProviderServiceExn {
