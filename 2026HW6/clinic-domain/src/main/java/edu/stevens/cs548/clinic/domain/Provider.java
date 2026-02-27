@@ -61,7 +61,7 @@ public class Provider implements Serializable, ITreatmentImporter {
 		this.name = name;
 	}
 
-	@OneToMany(mappedBy = "provider", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+	@OneToMany(mappedBy = "provider", cascade = CascadeType.REMOVE)
 	private Collection<Treatment> treatments;
 
 	@Transient

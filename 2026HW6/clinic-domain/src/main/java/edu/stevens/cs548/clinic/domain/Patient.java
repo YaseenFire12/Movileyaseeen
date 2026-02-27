@@ -72,7 +72,7 @@ public class Patient implements Serializable {
 	}
 
 
-	@OneToMany(mappedBy = "patient", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+	@OneToMany(mappedBy = "provider", cascade = CascadeType.REMOVE)
 	private Collection<Treatment> treatments;
 	
 
