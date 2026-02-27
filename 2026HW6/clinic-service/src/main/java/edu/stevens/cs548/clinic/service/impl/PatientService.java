@@ -19,8 +19,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 import org.jboss.logging.Logger;
-import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.transaction.Transactional;
 
 /**
  * CDI Bean implementation class PatientService
@@ -89,17 +87,15 @@ public class PatientService implements IPatientService {
 	/*
 	 * The boolean flag indicates if related treatments should be loaded eagerly.
 	 */
-	public PatientDto getPatient(UUID id, boolean includeTreatments) throws PatientServiceExn {
+	public PatientDto getPatient(UUID id, boolean includeTreatments) throws PatientNotFoundExn {
 		logger.info("Getting patient " + id);
-		// TODO use DAO to get patient by external key, create DTO that includes
-		// treatments
 		try {
 			Patient patient = patientDao.getPatient(id, includeTreatments);
 			return patientToDto(patient, includeTreatments);
 		} catch (PatientExn e) {
 			throw new PatientNotFoundExn("Failed to get patient", e);
 		} catch (TreatmentExn e) {
-			throw new PatientServiceExn("Failed to export treatments", e);
+			throw new PatientNotFoundExn("Failed to export treatments", e);
 		}
 	}
 
@@ -107,7 +103,7 @@ public class PatientService implements IPatientService {
 	/*
 	 * By default, we eagerly load related treatments with a provider record.
 	 */
-	public PatientDto getPatient(UUID id) throws PatientServiceExn {
+	public PatientDto getPatient(UUID id) throws PatientNotFoundExn {
 		return getPatient(id, true);
 	}
 

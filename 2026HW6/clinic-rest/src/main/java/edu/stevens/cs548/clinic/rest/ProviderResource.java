@@ -30,6 +30,7 @@ public class ProviderResource extends ResourceBase {
 
 	@Context
 	private UriInfo uriInfo;
+	private final IProviderService providerService;
 
 	public ProviderResource(IProviderService providerService) {
 		this.providerService = providerService;
@@ -105,7 +106,7 @@ public class ProviderResource extends ResourceBase {
 	@POST
 	@Path("{id}/treatment")
 	@Consumes("application/json")
-	public Response addTreatment(String providerId, TreatmentDto treatmentDto) {
+	public Response addTreatment(@PathParam("id") String providerId, TreatmentDto treatmentDto) {
 		String treatmentProvider = treatmentDto.getProviderId().toString();
 		if (!providerId.equals(treatmentProvider)) {
 			logger.severe(String.format("Provider in path %s does not match provider in body %s!", providerId,
