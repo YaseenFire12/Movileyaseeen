@@ -15,8 +15,8 @@ import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.UriInfo;
 import java.util.UUID;
 import org.jboss.logging.Logger;
-import jakarta.inject.Inject;
 
+// TODO
 
 @Path("/provider")
 public class ProviderController {
@@ -24,15 +24,11 @@ public class ProviderController {
     @Context
     private UriInfo uriInfo;
 
+    // TODO inject using constructor injection
+
     private final IProviderService providerService;
 
     private final Logger logger;
-
-    @Inject
-    public ProviderController(IProviderService providerService, Logger logger) {
-        this.providerService = providerService;
-        this.logger = logger;
-    }
 
 
     @GET

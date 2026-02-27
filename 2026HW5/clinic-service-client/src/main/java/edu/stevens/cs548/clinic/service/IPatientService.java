@@ -53,9 +53,9 @@ public interface IPatientService {
 
     List<PatientDto> getPatients() throws PatientServiceExn;
 	
-    PatientDto getPatient(UUID id, boolean includeTreatments) throws PatientNotFoundExn;
+    PatientDto getPatient(UUID id, boolean includeTreatments) throws PatientServiceExn;
 	
-    PatientDto getPatient(UUID id) throws PatientNotFoundExn;
+    PatientDto getPatient(UUID id) throws PatientServiceExn;
 	
     TreatmentDto getTreatment(UUID patientId, UUID treatmentId) throws PatientNotFoundExn, TreatmentNotFoundExn, PatientServiceExn;
 

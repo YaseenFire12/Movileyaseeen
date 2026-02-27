@@ -3,8 +3,6 @@ package edu.stevens.cs548.clinic.service.impl;
 import edu.stevens.cs548.clinic.domain.ITreatmentExporter;
 import edu.stevens.cs548.clinic.service.dto.DrugTreatmentDto;
 import edu.stevens.cs548.clinic.service.dto.RadiologyTreatmentDto;
-import edu.stevens.cs548.clinic.service.dto.PhysiotherapyTreatmentDto;
-import edu.stevens.cs548.clinic.service.dto.SurgeryTreatmentDto;
 import edu.stevens.cs548.clinic.service.dto.TreatmentDto;
 import edu.stevens.cs548.clinic.service.dto.TreatmentDtoFactory;
 import java.time.LocalDate;
@@ -83,46 +81,19 @@ public class TreatmentExporter implements ITreatmentExporter<TreatmentDto> {
 
 	@Override
 	public TreatmentDto exportSurgery(UUID tid, UUID patientId, String patientName, UUID providerId,
-									  String providerName, String diagnosis, LocalDate date, String dischargeInstructions,
-									  Supplier<Collection<TreatmentDto>> followups) {
+			String providerName, String diagnosis, LocalDate date, String dischargeInstructions, 
+			Supplier<Collection<TreatmentDto>> followups) {
 
-		SurgeryTreatmentDto dto = factory.createSurgeryTreatmentDto();
+		// TODO
 
-		dto.setId(tid);
-		dto.setPatientId(patientId);
-		dto.setPatientName(patientName);
-		dto.setProviderId(providerId);
-		dto.setProviderName(providerName);
-		dto.setDiagnosis(diagnosis);
-		dto.setSurgeryDate(date);
-		dto.setDischargeInstructions(dischargeInstructions);
-
-		if (includeFollowups) {
-			dto.setFollowupTreatments(followups.get());
-		}
-
-		return dto;
 	}
 
 	@Override
 	public TreatmentDto exportPhysiotherapy(UUID tid, UUID patientId, String patientName, UUID providerId,
-											String providerName, String diagnosis, List<LocalDate> dates, Supplier<Collection<TreatmentDto>> followups) {
+			String providerName, String diagnosis, List<LocalDate> dates, Supplier<Collection<TreatmentDto>> followups) {
 
-		PhysiotherapyTreatmentDto dto = factory.createPhysiotherapyTreatmentDto();
+		// TODO
 
-		dto.setId(tid);
-		dto.setPatientId(patientId);
-		dto.setPatientName(patientName);
-		dto.setProviderId(providerId);
-		dto.setProviderName(providerName);
-		dto.setDiagnosis(diagnosis);
-		dto.setTreatmentDates(dates);
-
-		if (includeFollowups) {
-			dto.setFollowupTreatments(followups.get());
-		}
-
-		return dto;
 	}
 
 }

@@ -1,16 +1,14 @@
 package edu.stevens.cs548.clinic.domain;
 
-import jakarta.enterprise.context.RequestScoped;
-import jakarta.inject.Inject;
-import jakarta.persistence.*;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.Query;
+import jakarta.persistence.TypedQuery;
 import java.util.List;
 import java.util.UUID;
-
-import jakarta.transaction.Transactional;
 import org.jboss.logging.Logger;
 
-@RequestScoped
-@Transactional
+// TODO
+
 public class PatientDao implements IPatientDao {
 
     // TODO inject these fields (use constructor injection)
@@ -20,12 +18,8 @@ public class PatientDao implements IPatientDao {
 
     private final ITreatmentDao treatmentDao;
 
-	@Inject
-	public PatientDao(Logger logger, EntityManager em, ITreatmentDao treatmentDao) {
-		this.logger = logger;
-		this.em = em;
-		this.treatmentDao = treatmentDao;
-	}
+
+
 
 	@Override
 	public void addPatient(Patient patient) throws PatientExn {

@@ -4,9 +4,13 @@ import jakarta.persistence.Entity;
 import java.io.Serial;
 import java.time.LocalDate;
 
-@Entity
+//TODO JPA annotations
+
 public class SurgeryTreatment extends Treatment {
 
+	/**
+	 * 
+	 */
 	@Serial
     private static final long serialVersionUID = 4173146640306267418L;
 	
@@ -32,17 +36,10 @@ public class SurgeryTreatment extends Treatment {
 	
 	@Override
 	public <T> T export(ITreatmentExporter<T> visitor) {
-		return visitor.exportSurgery(id,
-				patient.getId(),
-				patient.getName(),
-				provider.getId(),
-				provider.getName(),
-				diagnosis,
-				surgeryDate,
-				dischargeInstructions,
-				() -> exportFollowupTreatments(visitor));
-	}
+		// TODO
 
+	}
+	
 	public SurgeryTreatment() {
 		super();
 	}

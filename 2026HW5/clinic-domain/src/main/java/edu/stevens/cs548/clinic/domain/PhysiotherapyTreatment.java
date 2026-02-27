@@ -2,21 +2,21 @@ package edu.stevens.cs548.clinic.domain;
 
 import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
 import jakarta.persistence.OrderBy;
 import java.io.Serial;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
-@Entity
+// TODO
+
 public class PhysiotherapyTreatment extends Treatment {
 
 	@Serial
     private static final long serialVersionUID = 5602950140629148756L;
 
 	// Order by date
-	@ElementCollection(fetch = FetchType.EAGER)
+	@ElementCollection
 	@OrderBy
 	protected List<LocalDate> treatmentDates;
 

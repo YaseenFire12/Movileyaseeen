@@ -1,7 +1,9 @@
 package edu.stevens.cs548.clinic.domain;
 
 import edu.stevens.cs548.clinic.domain.ITreatmentDao.TreatmentExn;
-import jakarta.persistence.*;
+import jakarta.persistence.NamedQueries;
+import jakarta.persistence.NamedQuery;
+import jakarta.persistence.Transient;
 import java.io.Serial;
 import java.io.Serializable;
 import java.time.LocalDate;
@@ -15,7 +17,6 @@ import java.util.UUID;
  * Entity implementation class for Entity: Patient
  *
  */
-@Entity
 @NamedQueries({
 	@NamedQuery(
 		name="SearchPatientByPatientId",
@@ -27,18 +28,21 @@ import java.util.UUID;
 		name="CountPatientByPatientId",
 		query="select count(p) from Patient p where p.id = :patientId"),
 	@NamedQuery(
-		name = "SearchAllPatients",
+		name = "SearchAllPatients", 
 		query = "select p from Patient p"),
 	@NamedQuery(
-		name = "RemoveAllPatients",
+		name = "RemoveAllPatients", 
 		query = "delete from Patient p")
 })
+
+// TODO
+
 public class Patient implements Serializable {
 
     @Serial
     private static final long serialVersionUID = -4512912599605407549L;
 
-    @Id
+    // TODO PK (Do NOT auto-generate)
     private UUID id;
 
 	private String name;
@@ -70,7 +74,7 @@ public class Patient implements Serializable {
 	}
 
 
-	@OneToMany(cascade = CascadeType.PERSIST, mappedBy = "patient")
+	// TODO JPA annotations (propagate persist of patient to treatments)
 	private Collection<Treatment> treatments;
 	
 
