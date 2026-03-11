@@ -1,0 +1,18 @@
+{#include base}
+    {#title}View Providers{/title}
+    <h2>View Providers</h2>
+    <p>
+    <table class="gridTable">
+        <tr>
+            <th>Provider Name</th>
+            <th>NPI</th>
+        </tr>
+        {#for provider in providers}
+            <tr>
+                <td><a href="{tmt:providerLink(uri, provider.id)}">{provider.name}</a></td>
+                <td>{provider.npi}</td>
+            </tr>
+        {/for}
+    </table>
+
+{/include}

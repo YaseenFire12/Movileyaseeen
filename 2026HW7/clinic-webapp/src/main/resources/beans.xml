@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+            http://www.springframework.org/schema/beans/spring-beans.xsd
+            http://www.springframework.org/schema/aop
+            http://www.springframework.org/schema/aop/spring-aop.xsd">
+
+    <!-- https://docs.spring.io/spring-framework/docs/3.2.0.RELEASE/spring-framework-reference/html/beans.html#beans-factory-scopes-other-injection -->
+
+    <!-- An HTTP request-scoped bean exposed as a proxy -->
+    <bean id="messageService" class="edu.stevens.cs548.chat.impl.MessageService" scope="request">
+        <!-- instructs the container to proxy the surrounding bean -->
+        <aop:scoped-proxy proxy-target-class="true"/>
+    </bean>
+
+    <bean id="messageDao" class="edu.stevens.cs548.chat.domain.MessageDao" scope="request">
+        <!-- instructs the container to proxy the surrounding bean -->
+        <aop:scoped-proxy proxy-target-class="true"/>
+    </bean>
+
+    <bean id="chatDomainProducer" class="edu.stevens.cs548.chat.domain.ChatDomainProducer" scope="request">
+        <!-- instructs the container to proxy the surrounding bean -->
+        <aop:scoped-proxy proxy-target-class="true"/>
+    </bean>
+
+</beans>
