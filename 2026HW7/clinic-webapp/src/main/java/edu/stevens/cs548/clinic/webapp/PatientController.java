@@ -10,21 +10,22 @@ import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.UriInfo;
 import java.util.UUID;
 import org.jboss.logging.Logger;
+import jakarta.enterprise.context.RequestScoped;
 
-// TODO
-
+@RequestScoped
 @Path("/patient")
 public class PatientController {
 
     @Context
     private UriInfo uriInfo;
-
-    // TODO inject using constructor injection
-
     private final IPatientService patientService;
 
     private final Logger logger;
 
+    public PatientController(IPatientService patientService, Logger logger) {
+        this.patientService = patientService;
+        this.logger = logger;
+    }
 
     @GET
     public TemplateInstance getPatients() {
@@ -45,7 +46,7 @@ public class PatientController {
         } catch (IllegalArgumentException e) {
             throw new IllegalArgumentException("Patient id is not a UUID: " + id, e);
         } catch (PatientServiceExn e) {
-            throw new IllegalStateException("Fatal error while querying for patient "+id, e);
+            throw new IllegalStateException("Fatal error while querying for patient " + id, e);
         }
     }
 

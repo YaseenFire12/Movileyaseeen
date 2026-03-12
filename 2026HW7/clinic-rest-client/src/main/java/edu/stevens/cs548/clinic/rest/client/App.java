@@ -31,36 +31,23 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class App {
-	
+
 	public static final String APP_PROPERTIES = "/app.properties";
-	
 	public static final String SERVER_URI_PROPERTY = "server.uri";
-	
 	public static final String DATABASE_FILE_PROPERTY = "database.file";
-
 	public static final String PATIENTS = "patients";
-
 	public static final String PROVIDERS = "providers";
-
 	public static final String TREATMENTS = "treatments";
 
 	private static final Logger logger = Logger.getLogger(App.class.getCanonicalName());
 
 	private final BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
-
 	private final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("MM/dd/yyyy");
-
 	private final PatientDtoFactory patientFactory = new PatientDtoFactory();
-
 	private final ProviderDtoFactory providerFactory = new ProviderDtoFactory();
-
 	private final TreatmentDtoFactory treatmentFactory = new TreatmentDtoFactory();
-
-    private final TimeBasedEpochGenerator uuidGenerator = Generators.timeBasedEpochGenerator();
-
-
-    private final WebClient client;
-
+	private final TimeBasedEpochGenerator uuidGenerator = Generators.timeBasedEpochGenerator();
+	private final WebClient client;
 	private URI serverUri;
 
 	public void severe(String s) {
@@ -79,9 +66,6 @@ public class App {
 		logger.info(s);
 	}
 
-	/*
-	 * Main program
-	 */
 	public static void main(String[] args) {
 		new App(args);
 	}
@@ -97,11 +81,8 @@ public class App {
 	static void err(String s) {
 		System.err.println("** " + s);
 	}
-	
+
 	protected void loadProperties() {
-		/*
-		 * Load default properties.
-		 */
 		try {
 			Properties props = new Properties();
 			InputStream propsIn = getClass().getResourceAsStream(APP_PROPERTIES);
@@ -109,18 +90,14 @@ public class App {
 			propsIn.close();
 			serverUri = URI.create(props.getProperty(SERVER_URI_PROPERTY));
 		} catch (IOException e) {
-			throw new IllegalStateException("Failed to load properties from "+APP_PROPERTIES, e);
+			throw new IllegalStateException("Failed to load properties from " + APP_PROPERTIES, e);
 		}
 	}
-	
+
 	protected List<String> processArgs(String[] args) {
-		/*
-		 * Default properties may be overridden on the command line.
-		 */
 		List<String> commandLineArgs = new ArrayList<String>();
 		int ix = 0;
 		Hashtable<String, String> opts = new Hashtable<String, String>();
-
 		while (ix < args.length) {
 			if (args[ix].startsWith("--")) {
 				String option = args[ix++].substring(2);
@@ -134,9 +111,6 @@ public class App {
 				commandLineArgs.add(args[ix++]);
 			}
 		}
-		/*
-		 * Overrides of values from configuration file.
-		 */
 		Enumeration<String> keys = opts.keys();
 		while (keys.hasMoreElements()) {
 			String k = keys.nextElement();
@@ -145,20 +119,13 @@ public class App {
 			else
 				severe("Unrecognized option: --" + k);
 		}
-
 		return commandLineArgs;
 	}
 
-
 	public App(String[] args) {
-		
 		loadProperties();
-		
 		processArgs(args);
-		
 		client = new WebClient(serverUri);
-		
-		// Main command-line interface loop
 
 		while (true) {
 			try {
@@ -170,19 +137,19 @@ public class App {
 				String[] inputs = line.split("\\s+");
 				if (inputs.length > 0) {
 					String cmd = inputs[0];
-                    switch (cmd) {
-                        case "" -> {
-                            ;
-                        }
-                        case "addpatient" -> addPatient();
-                        case "addprovider" -> addProvider();
-                        case "addtreatment" -> addOneTreatment();
-                        case "help" -> help(inputs);
-                        case "quit" -> {
-                            return;
-                        }
-                        default -> msgln("Bad input.  Type \"help\" for more information.");
-                    }
+					switch (cmd) {
+						case "" -> {
+							;
+						}
+						case "addpatient" -> addPatient();
+						case "addprovider" -> addProvider();
+						case "addtreatment" -> addOneTreatment();
+						case "help" -> help(inputs);
+						case "quit" -> {
+							return;
+						}
+						default -> msgln("Bad input.  Type \"help\" for more information.");
+					}
 				}
 			} catch (Exception e) {
 				severe(e);
@@ -190,31 +157,29 @@ public class App {
 		}
 	}
 
-
 	public void addPatient() throws IOException {
 		PatientDto patient = patientFactory.createPatientDto();
-        patient.setId(uuidGenerator.generate());
+		patient.setId(uuidGenerator.generate());
 		msg("Name: ");
 		patient.setName(in.readLine());
 		patient.setDob(readDate("Patient DOB"));
-		msgln("Added patient: "+client.addPatient(patient));
+		msgln("Added patient: " + client.addPatient(patient));
 	}
 
 	public void addProvider() throws IOException {
 		ProviderDto provider = providerFactory.createProviderDto();
-        provider.setId(uuidGenerator.generate());
+		provider.setId(uuidGenerator.generate());
 		msg("NPI: ");
 		provider.setNpi(in.readLine());
 		msg("Name: ");
 		provider.setName(in.readLine());
-		msgln("Added provider: "+client.addProvider(provider));
+		msgln("Added provider: " + client.addProvider(provider));
 	}
-
 
 	public void addOneTreatment() throws IOException, ParseException {
 		TreatmentDto treatment = addTreatment();
 		if (treatment != null) {
-			msgln("Added treatment: "+client.addTreatment(treatment));
+			msgln("Added treatment: " + client.addTreatment(treatment));
 		}
 	}
 
@@ -222,14 +187,14 @@ public class App {
 		msg("What form of treatment: [D]rug, [S]urgery, [R]adiology, [P]hysiotherapy? ");
 		String line = in.readLine().toUpperCase();
 		TreatmentDto treatment = switch (line) {
-            case "D" -> addDrugTreatment();
-            case "S" -> addSurgeryTreatment();
-            case "R" -> addRadiologyTreatment();
-            case "P" -> addPhysiotherapyTreatment();
-            default -> null;
-        };
+			case "D" -> addDrugTreatment();
+			case "S" -> addSurgeryTreatment();
+			case "R" -> addRadiologyTreatment();
+			case "P" -> addPhysiotherapyTreatment();
+			default -> null;
+		};
 
-        if (treatment != null) {
+		if (treatment != null) {
 			msgln("Adding follow-up treatments...");
 			addTreatmentList(treatment);
 			msgln("...finished follow-up treatments");
@@ -237,9 +202,6 @@ public class App {
 		return treatment;
 	}
 
-	/*
-	 * Use this to add a list of follow-up treatments.
-	 */
 	public void addTreatmentList(TreatmentDto parent) throws IOException, ParseException {
 		TreatmentDto treatment = addTreatment();
 		while (treatment != null) {
@@ -250,8 +212,7 @@ public class App {
 
 	private DrugTreatmentDto addDrugTreatment() throws IOException, ParseException {
 		DrugTreatmentDto treatment = treatmentFactory.createDrugTreatmentDto();
-
-        treatment.setId(uuidGenerator.generate());
+		treatment.setId(uuidGenerator.generate());
 		msg("Patient ID: ");
 		treatment.setPatientId(UUID.fromString(in.readLine()));
 		msg("Patient Name: ");
@@ -270,22 +231,12 @@ public class App {
 		treatment.setEndDate(readDate("End date"));
 		msg("Frequency: ");
 		treatment.setFrequency(Integer.parseInt(in.readLine()));
-
 		return treatment;
 	}
 
 	private SurgeryTreatmentDto addSurgeryTreatment() throws IOException, ParseException {
 		SurgeryTreatmentDto treatment = treatmentFactory.createSurgeryTreatmentDto();
-
-		// TODO finish this
-
-
-	}
-
-	private RadiologyTreatmentDto addRadiologyTreatment() throws IOException, ParseException {
-		RadiologyTreatmentDto treatment = treatmentFactory.createRadiologyTreatmentDto();
-
-        treatment.setId(uuidGenerator.generate());
+		treatment.setId(uuidGenerator.generate());
 		msg("Patient ID: ");
 		treatment.setPatientId(UUID.fromString(in.readLine()));
 		msg("Patient Name: ");
@@ -296,20 +247,36 @@ public class App {
 		treatment.setProviderName(in.readLine());
 		msg("Diagnosis: ");
 		treatment.setDiagnosis(in.readLine());
+		treatment.setSurgeryDate(readDate("Surgery date"));
+		msg("Discharge Instructions: ");
+		treatment.setDischargeInstructions(in.readLine());
+		return treatment;
+	}
 
+	private RadiologyTreatmentDto addRadiologyTreatment() throws IOException, ParseException {
+		RadiologyTreatmentDto treatment = treatmentFactory.createRadiologyTreatmentDto();
+		treatment.setId(uuidGenerator.generate());
+		msg("Patient ID: ");
+		treatment.setPatientId(UUID.fromString(in.readLine()));
+		msg("Patient Name: ");
+		treatment.setPatientName(in.readLine());
+		msg("Provider ID: ");
+		treatment.setProviderId(UUID.fromString(in.readLine()));
+		msg("Provider Name: ");
+		treatment.setProviderName(in.readLine());
+		msg("Diagnosis: ");
+		treatment.setDiagnosis(in.readLine());
 		LocalDate date = readDate("Treatment date");
 		while (date != null) {
 			treatment.getTreatmentDates().add(date);
 			date = readDate("Treatment date");
 		}
-
 		return treatment;
 	}
 
 	private PhysiotherapyTreatmentDto addPhysiotherapyTreatment() throws IOException, ParseException {
 		PhysiotherapyTreatmentDto treatment = treatmentFactory.createPhysiotherapyTreatmentDto();
-
-        treatment.setId(uuidGenerator.generate());
+		treatment.setId(uuidGenerator.generate());
 		msg("Patient ID: ");
 		treatment.setPatientId(UUID.fromString(in.readLine()));
 		msg("Patient Name: ");
@@ -320,16 +287,13 @@ public class App {
 		treatment.setProviderName(in.readLine());
 		msg("Diagnosis: ");
 		treatment.setDiagnosis(in.readLine());
-
 		LocalDate date = readDate("Treatment date");
 		while (date != null) {
 			treatment.getTreatmentDates().add(date);
 			date = readDate("Treatment date");
 		}
-
 		return treatment;
 	}
-
 
 	private LocalDate readDate(String field) throws IOException {
 		msg(String.format("%s (MM/dd/yyyy): ", field));
@@ -339,7 +303,6 @@ public class App {
 		}
 		return LocalDate.parse(line, dateFormatter);
 	}
-
 
 	public void help(String[] inputs) {
 		if (inputs.length == 1) {

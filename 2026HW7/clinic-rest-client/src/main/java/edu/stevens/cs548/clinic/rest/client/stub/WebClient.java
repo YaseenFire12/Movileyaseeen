@@ -15,8 +15,8 @@ import retrofit2.Retrofit;
 import retrofit2.converter.jackson.JacksonConverterFactory;
 
 public class WebClient {
-	
-	protected final Logger logger = Logger.getLogger(WebClient.class.getCanonicalName());
+
+    protected final Logger logger = Logger.getLogger(WebClient.class.getCanonicalName());
 
     /*
      * HTTP response header for 201 status
@@ -26,37 +26,37 @@ public class WebClient {
     /*
      * The client stub used for Web service calls.
      */
-	private final IServerApi client;
+    private final IServerApi client;
 
-	public WebClient(URI baseUri) {
+    public WebClient(URI baseUri) {
         /*
          * Create the HTTP client stub.
          */
         OkHttpClient httpClient = new OkHttpClient.Builder().build();
-        
+
         /*
          * Gson converter
          */
         ObjectMapper objectMapper = ObjectMapperFactory.createObjectMapper();
 
-        Retrofit retrofit = null;
-        /*
-         * TODO Wrap the okhttp client with a retrofit stub factory.
-         */
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl(baseUri.toString())
+                .client(httpClient)
+                .addConverterFactory(JacksonConverterFactory.create(objectMapper))
+                .build();
 
-        
         /*
          * Create the stub that will be used for Web service calls
          */
         client = retrofit.create(IServerApi.class);
- 	}
+    }
 
     public URI addPatient(PatientDto patientDto) throws IOException {
         Response<Void> response = client.addPatient(patientDto).execute();
         if (response.isSuccessful()) {
             return URI.create(Objects.requireNonNull(response.headers().get(LOCATION)));
         } else {
-            throw new IOException("Web service (POST /.../patient) failure: "+response.code());
+            throw new IOException("Web service (POST /.../patient) failure: " + response.code());
         }
     }
 
@@ -65,14 +65,20 @@ public class WebClient {
         if (response.isSuccessful()) {
             return URI.create(Objects.requireNonNull(response.headers().get(LOCATION)));
         } else {
-            throw new IOException("Web service (POST /.../provider) failure: "+response.code());
+            throw new IOException("Web service (POST /.../provider) failure: " + response.code());
         }
     }
 
     public URI addTreatment(TreatmentDto treatmentDto) throws IOException {
-        // TODO Finish this
-        return null;
+        Response<Void> response = client.addTreatment(
+                treatmentDto.getProviderId().toString(),
+                treatmentDto).execute();
 
+        if (response.isSuccessful()) {
+            return URI.create(Objects.requireNonNull(response.headers().get(LOCATION)));
+        } else {
+            throw new IOException("Web service (POST /.../treatment) failure: " + response.code());
+        }
     }
 
 }

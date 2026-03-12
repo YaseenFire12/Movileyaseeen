@@ -25,42 +25,38 @@ import java.util.logging.Logger;
 @Path("patient")
 @RequestScoped
 public class PatientResource extends ResourceBase {
-	
+
 	private static final Logger logger = Logger.getLogger(PatientResource.class.getCanonicalName());
 
-	// TODO
+	@Context
 	private UriInfo uriInfo;
 
-    // TODO inject this field with constructor injection
 	private final IPatientService patientService;
 
+	public PatientResource(IPatientService patientService) {
+		this.patientService = patientService;
+	}
 
 	@GET
 	@Path("{id}")
 	@Produces("application/json")
-	/*
-	 * Return a provider DTO including the list of treatments they are administering.
-	 */
 	public Response getPatient(@PathParam("id") String id) {
 		try {
 			UUID patientId = UUID.fromString(id);
 			PatientDto patient = patientService.getPatient(patientId, true);
 			ResponseBuilder responseBuilder = Response.ok(patient);
-			/* 
-			 * Add links for treatments in response headers.
-			 */
 			for (TreatmentDto treatment : patient.getTreatments()) {
 				responseBuilder.link(getTreatmentUri(uriInfo, treatment.getProviderId(), treatment.getId()), TREATMENT);
 			}
 			return responseBuilder.build();
 		} catch (PatientNotFoundExn e) {
-			logger.info("Failed to find patient with id "+id);
+			logger.info("Failed to find patient with id " + id);
 			return Response.status(Status.NOT_FOUND).build();
 		} catch (PatientServiceExn e) {
 			logger.log(Level.SEVERE, "Patient service request (getPatient) failed! ", e);
 			return Response.status(Status.BAD_REQUEST).build();
 		} catch (IllegalArgumentException e) {
-			logger.info("Badly formed patient id: "+id);
+			logger.info("Badly formed patient id: " + id);
 			return Response.status(Status.BAD_REQUEST).build();
 		}
 	}
@@ -77,5 +73,5 @@ public class PatientResource extends ResourceBase {
 			return Response.status(Status.BAD_REQUEST).build();
 		}
 	}
-	
+
 }

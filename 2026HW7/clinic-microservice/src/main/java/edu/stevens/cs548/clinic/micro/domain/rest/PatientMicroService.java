@@ -38,27 +38,31 @@ import org.jboss.logging.Logger;
 /**
  * REST version of Patient Service
  */
-// TODO
+@Path("patient")
+@RequestScoped
+@Transactional
 public class PatientMicroService {
 
-	// TODO
+	@Context
 	private UriInfo uriInfo;
-	
+
 	private final IPatientFactory patientFactory = new PatientFactory();
-	
+
 	private final PatientDtoFactory patientDtoFactory = new PatientDtoFactory();
 
-    private final TimeBasedEpochGenerator uuidGenerator = Generators.timeBasedEpochGenerator();
+	private final TimeBasedEpochGenerator uuidGenerator = Generators.timeBasedEpochGenerator();
 
-    // TODO inject these fields via constructor injection
-    private final Logger logger;
+	private final Logger logger;
 
-    private final IPatientDao patientDao;
+	private final IPatientDao patientDao;
 
+	public PatientMicroService(Logger logger, IPatientDao patientDao) {
+		this.logger = logger;
+		this.patientDao = patientDao;
+	}
 
-	
-	// TODO
-
+	@POST
+	@Consumes(MediaType.APPLICATION_JSON)
 	public Response addPatient(PatientDto dto) {
 		try {
 			logger.info(String.format("addPatient: Adding patient %s in microservice!", dto.getName()));
@@ -80,8 +84,8 @@ public class PatientMicroService {
 		}
 	}
 
-	// TODO
-
+	@GET
+	@Produces(MediaType.APPLICATION_JSON)
 	public List<PatientDto> getPatients() {
 		try {
 			logger.info("getPatients: Getting all patients in microservice!");
@@ -96,7 +100,7 @@ public class PatientMicroService {
 			throw new WebApplicationException(Status.INTERNAL_SERVER_ERROR);
 		}
 	}
-	
+
 	private PatientDto patientToDto(Patient patient, boolean includeTreatments) throws TreatmentExn {
 		PatientDto dto = patientDtoFactory.createPatientDto();
 		dto.setId(patient.getId());
@@ -107,18 +111,20 @@ public class PatientMicroService {
 		}
 		return dto;
 	}
-	
-	// TODO
 
-	public PatientDto getPatient(@PathParam("id") String id, @QueryParam("treatments") @DefaultValue("true") String treatments) {
+	@GET
+	@Path("{id}")
+	@Produces(MediaType.APPLICATION_JSON)
+	public PatientDto getPatient(@PathParam("id") String id,
+			@QueryParam("treatments") @DefaultValue("true") String treatments) {
 		try {
 			logger.infof("getPatient: Getting patient %s in microservice!", id);
 			UUID patientId = UUID.fromString(id);
 			boolean includeTreatments = Boolean.parseBoolean(treatments);
 
-			// TODO use DAO to get patient by external key, create DTO that includes treatments
+			Patient patient = patientDao.getPatient(patientId, includeTreatments);
+			return patientToDto(patient, includeTreatments);
 
-			
 		} catch (PatientExn e) {
 			logger.infof(e, "Failed to find patient with id %s", id);
 			throw new WebApplicationException(Status.NOT_FOUND);
@@ -128,10 +134,10 @@ public class PatientMicroService {
 		}
 	}
 
-	// TODO
-
+	@GET
+	@Path("{id}/treatment/{tid}")
+	@Produces(MediaType.APPLICATION_JSON)
 	public TreatmentDto getTreatment(@PathParam("id") String id, @PathParam("tid") String tid) {
-		// Export treatment DTO from patient aggregate
 		try {
 			logger.infof("getTreatment: Getting treatment %s in microservice!", tid);
 			UUID patientId = UUID.fromString(id);
@@ -149,9 +155,8 @@ public class PatientMicroService {
 			throw new WebApplicationException(Status.INTERNAL_SERVER_ERROR);
 		}
 	}
-	
-	// TODO
 
+	@DELETE
 	public void removeAll() {
 		logger.info(String.format("deletePatients: Deleting all patients in microservice!"));
 		patientDao.deletePatients();

@@ -47,32 +47,34 @@ import org.jboss.logging.Logger;
 /**
  * Microservice for provider aggregate
  */
-// TODO
-
+@Path("provider")
+@RequestScoped
+@Transactional
 public class ProviderMicroService {
 
 	private final IProviderFactory providerFactory = new ProviderFactory();
 
 	private final ProviderDtoFactory providerDtoFactory = new ProviderDtoFactory();
 
-    private final TimeBasedEpochGenerator uuidGenerator = Generators.timeBasedEpochGenerator();
+	private final TimeBasedEpochGenerator uuidGenerator = Generators.timeBasedEpochGenerator();
 
-    // TODO inject these fields via constructor injection
-    private final Logger logger;
+	private final Logger logger;
 
-    private final IProviderDao providerDao;
+	private final IProviderDao providerDao;
 
-    private final IPatientDao patientDao;
+	private final IPatientDao patientDao;
 
+	public ProviderMicroService(Logger logger, IProviderDao providerDao, IPatientDao patientDao) {
+		this.logger = logger;
+		this.providerDao = providerDao;
+		this.patientDao = patientDao;
+	}
 
-	
-
-	// TODO
+	@Context
 	UriInfo uriInfo;
-	
 
-	// TODO
-
+	@GET
+	@Consumes(MediaType.APPLICATION_JSON)
 	public Response addProvider(ProviderDto dto) {
 		// Use factory to create Provider entity, and persist with DAO
 		try {
@@ -93,9 +95,9 @@ public class ProviderMicroService {
 			return Response.serverError().build();
 		}
 	}
-	
-	// TODO
 
+	@GET
+	@Produces(MediaType.APPLICATION_JSON)
 	public List<ProviderDto> getProviders() {
 		try {
 			logger.info("getProviders: Getting all providers in microservice!");
@@ -121,40 +123,45 @@ public class ProviderMicroService {
 		}
 		return dto;
 	}
-	
-	// TODO
 
-	public ProviderDto getProvider(@PathParam("id") String id, @QueryParam("treatments") @DefaultValue("true")String treatments) {
+	@GET
+	@Path("{id}")
+	@Produces(MediaType.APPLICATION_JSON)
+	public ProviderDto getProvider(@PathParam("id") String id,
+			@QueryParam("treatments") @DefaultValue("true") String treatments) {
 		try {
 			logger.info(String.format("getProvider: Getting provider %s in microservice!", id));
 			UUID providerId = UUID.fromString(id);
 			boolean includeTreatments = Boolean.parseBoolean(treatments);
 
-			// TODO use DAO to get Provider by external key
 			Provider provider = providerDao.getProvider(providerId, includeTreatments);
 			return providerToDto(provider, includeTreatments);
 
 		} catch (ProviderExn e) {
-			logger.info("Failed to find provider with id "+id);
+			logger.info("Failed to find provider with id " + id);
 			throw new WebApplicationException(Status.NOT_FOUND);
 		} catch (TreatmentExn e) {
 			logger.fatalf(e, "Failed to get provider %s!", id);
 			throw new WebApplicationException(Status.NOT_FOUND);
 		}
 	}
-	
-	// TODO
 
+	@POST
+	@Path("{id}/treatment")
+	@Consumes(MediaType.APPLICATION_JSON)
 	public Response addTreatment(@PathParam("id") String id, TreatmentDto dto) {
 		try {
 			logger.info(String.format("addTreatment: Adding treatment for %s in microservice!", dto.getPatientName()));
 			UUID providerId = UUID.fromString(id);
 			if (!providerId.equals(dto.getProviderId())) {
-				throw new IllegalArgumentException(String.format("Provider id %s in URI is not the same as the treatment provider id %s", id, dto.getProviderId().toString()));
+				throw new IllegalArgumentException(
+						String.format("Provider id %s in URI is not the same as the treatment provider id %s", id,
+								dto.getProviderId().toString()));
 			}
 			// return Response.status(Status.CREATED).build();
 			UUID tid = addTreatmentImpl(dto, null);
-			URI location = uriInfo.getBaseUriBuilder().path(dto.getProviderId().toString()).path("treatment").path(tid.toString()).build();
+			URI location = uriInfo.getBaseUriBuilder().path(dto.getProviderId().toString()).path("treatment")
+					.path(tid.toString()).build();
 			return Response.created(location).build();
 		} catch (PatientExn | ProviderExn e) {
 			return Response.status(Status.NOT_FOUND).build();
@@ -179,16 +186,19 @@ public class ProviderMicroService {
 		Consumer<Treatment> followUpsConsumer = null;
 
 		if (dto instanceof DrugTreatmentDto drugTreatmentDto) {
-
-            followUpsConsumer = provider.importDrugTreatment(dto.getId(), patient, provider, dto.getDiagnosis(),
+			followUpsConsumer = provider.importDrugTreatment(dto.getId(), patient, provider, dto.getDiagnosis(),
 					drugTreatmentDto.getDrug(), drugTreatmentDto.getDosage(), drugTreatmentDto.getStartDate(),
 					drugTreatmentDto.getEndDate(), drugTreatmentDto.getFrequency(), parentFollowUps);
-
-		} else {
-			/*
-			 * TODO Handle the other cases
-			 */
-
+		} else if (dto instanceof RadiologyTreatmentDto radiologyTreatmentDto) {
+			followUpsConsumer = provider.importRadiology(dto.getId(), patient, provider, dto.getDiagnosis(),
+					radiologyTreatmentDto.getTreatmentDates(), parentFollowUps);
+		} else if (dto instanceof SurgeryTreatmentDto surgeryTreatmentDto) {
+			followUpsConsumer = provider.importSurgery(dto.getId(), patient, provider, dto.getDiagnosis(),
+					surgeryTreatmentDto.getSurgeryDate(), surgeryTreatmentDto.getDischargeInstructions(),
+					parentFollowUps);
+		} else if (dto instanceof PhysiotherapyTreatmentDto physiotherapyTreatmentDto) {
+			followUpsConsumer = provider.importPhysiotherapy(dto.getId(), patient, provider, dto.getDiagnosis(),
+					physiotherapyTreatmentDto.getTreatmentDates(), parentFollowUps);
 		}
 
 		for (TreatmentDto followUp : dto.getFollowupTreatments()) {
@@ -197,9 +207,10 @@ public class ProviderMicroService {
 
 		return dto.getId();
 	}
-	
-	// TODO
 
+	@GET
+	@Path("{id}/treatment/{tid}")
+	@Produces(MediaType.APPLICATION_JSON)
 	public TreatmentDto getTreatment(@PathParam("id") String id, @PathParam("tid") String tid) {
 		try {
 			logger.infof("getTreatment: Getting treatment %s in microservice!", tid);
@@ -220,12 +231,10 @@ public class ProviderMicroService {
 		}
 	}
 
-	// TODO
-
+	@DELETE
 	public void removeAll() {
 		logger.info("deleteProviders: Deleting all providers in microservice!");
 		providerDao.deleteProviders();
 	}
-
 
 }

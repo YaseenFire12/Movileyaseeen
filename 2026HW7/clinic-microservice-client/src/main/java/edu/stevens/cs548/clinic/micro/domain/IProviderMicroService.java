@@ -16,13 +16,16 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
+import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import java.util.List;
 import java.util.UUID;
 import org.eclipse.microprofile.rest.client.annotation.RegisterProvider;
 import org.eclipse.microprofile.rest.client.inject.RegisterRestClient;
 
-// TODO annotate
+@RegisterRestClient(configKey = "clinic-domain-api")
+@RegisterProvider(ProviderResponseExceptionMapper.class)
+@Path("provider")
 public interface IProviderMicroService {
 
     /*
@@ -33,28 +36,30 @@ public interface IProviderMicroService {
         return IPatientMicroService.objectMapper(defaultObjectMapper);
     }
 
-	// TODO
-
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
     Response addProvider(ProviderDto dto);
 
-	// TODO
-
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
     List<ProviderDto> getProviders();
 
-	// TODO
-
+    @GET
+    @Path("{id}")
+    @Produces(MediaType.APPLICATION_JSON)
     ProviderDto getProvider(@PathParam("id") String id, @QueryParam("treatments") String includeTreatments);
 
-	// TODO
-
+    @POST
+    @Path("{id}/treatment")
+    @Consumes(MediaType.APPLICATION_JSON)
     Response addTreatment(@PathParam("id") String id, TreatmentDto dto);
 
-	// TODO
-
+    @GET
+    @Path("{id}/treatment/{tid}")
+    @Produces(MediaType.APPLICATION_JSON)
     TreatmentDto getTreatment(@PathParam("id") String providerId, @PathParam("tid") String treatmentId);
 
-	// TODO
-
+    @DELETE
     void removeAll();
-		
+
 }
