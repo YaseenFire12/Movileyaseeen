@@ -1,9 +1,8 @@
 package edu.stevens.cs548.clinic.domain;
 
 import edu.stevens.cs548.clinic.domain.ITreatmentDao.TreatmentExn;
-import jakarta.persistence.NamedQueries;
-import jakarta.persistence.NamedQuery;
-import jakarta.persistence.Transient;
+import jakarta.persistence.*;
+
 import java.io.Serial;
 import java.io.Serializable;
 import java.time.LocalDate;
@@ -12,43 +11,42 @@ import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 
+import static jakarta.persistence.CascadeType.REMOVE;
 
 /**
  * Entity implementation class for Entity: Patient
- *
  */
 @NamedQueries({
-	@NamedQuery(
-		name="SearchPatientByPatientId",
-		query="select p from Patient p where p.id = :patientId"),
-	@NamedQuery(
-			name="SearchPatientWithTreatmentsByPatientId",
-			query="select p from Patient p left join fetch p.treatments where p.id = :patientId"),
-	@NamedQuery(
-		name="CountPatientByPatientId",
-		query="select count(p) from Patient p where p.id = :patientId"),
-	@NamedQuery(
-		name = "SearchAllPatients", 
-		query = "select p from Patient p"),
-	@NamedQuery(
-		name = "RemoveAllPatients", 
-		query = "delete from Patient p")
+		@NamedQuery(
+				name = "SearchPatientByPatientId",
+				query = "select p from Patient p where p.id = :patientId"),
+		@NamedQuery(
+				name = "SearchPatientWithTreatmentsByPatientId",
+				query = "select p from Patient p left join fetch p.treatments where p.id = :patientId"),
+		@NamedQuery(
+				name = "CountPatientByPatientId",
+				query = "select count(p) from Patient p where p.id = :patientId"),
+		@NamedQuery(
+				name = "SearchAllPatients",
+				query = "select p from Patient p"),
+		@NamedQuery(
+				name = "RemoveAllPatients",
+				query = "delete from Patient p")
 })
 
-// TODO
-
+@Entity
 public class Patient implements Serializable {
 
-    @Serial
-    private static final long serialVersionUID = -4512912599605407549L;
+	@Serial
+	private static final long serialVersionUID = -4512912599605407549L;
 
-    // TODO PK (Do NOT auto-generate)
-    private UUID id;
+	@Id
+	private UUID id;
 
 	private String name;
 
 	private LocalDate dob;
-	
+
 	public UUID getId() {
 		return id;
 	}
@@ -73,53 +71,43 @@ public class Patient implements Serializable {
 		this.dob = dob;
 	}
 
-
-	// TODO JPA annotations (propagate persist of patient to treatments)
+	@OneToMany(mappedBy = "patient", cascade = REMOVE)
 	private Collection<Treatment> treatments;
-	
 
 	@Transient
 	private ITreatmentDao treatmentDao;
-	
-	public void setTreatmentDao (ITreatmentDao tdao) {
+
+	public void setTreatmentDao(ITreatmentDao tdao) {
 		this.treatmentDao = tdao;
 	}
-	
+
 	/**
 	 * This should only be called from Provider ITreatmentImporter methods
 	 */
-	void addTreatment (Treatment t) {
-		// Set forward and backward links
+	void addTreatment(Treatment t) {
 		treatments.add(t);
 		t.setPatient(this);
 	}
-	
+
 	public <T> T exportTreatment(UUID tid, ITreatmentExporter<T> visitor) throws TreatmentExn {
-		// Export a treatment without violating Aggregate pattern
-		// Check that the exported treatment is a treatment for this patient.
 		Treatment t = treatmentDao.getTreatment(tid);
 		if (t.getPatient() != this) {
 			throw new TreatmentExn("Inappropriate treatment access: patient = " + id + ", treatment = " + tid);
 		}
 		return t.export(visitor);
 	}
-	
-	/**
-	 * Map the treatment exporter over all of the treatments for this patient
-	 */
+
 	public <T> List<T> exportTreatments(ITreatmentExporter<T> visitor) throws TreatmentExn {
 		List<T> exports = new ArrayList<T>();
-		
 		for (Treatment t : treatments) {
 			exports.add(t.export(visitor));
 		}
-		
 		return exports;
 	}
-	
+
 	public Patient() {
 		super();
 		treatments = new ArrayList<Treatment>();
 	}
-   
+
 }

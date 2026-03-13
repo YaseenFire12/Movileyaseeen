@@ -6,34 +6,26 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.UUID;
 
-/*
- * TODO Annotate for serialization of subclasses
- */
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "treatment-type")
+public sealed abstract class TreatmentDto
+		permits DrugTreatmentDto, PhysiotherapyTreatmentDto, RadiologyTreatmentDto, SurgeryTreatmentDto {
 
-public sealed abstract class TreatmentDto permits DrugTreatmentDto, PhysiotherapyTreatmentDto, RadiologyTreatmentDto, SurgeryTreatmentDto {
-	
 	private UUID id;
-	
+
 	@JsonProperty("patient-id")
 	private UUID patientId;
-	
-	/* 
-	 * Use this to display patient name in list of treatments without N+1 problem.
-	 */
+
 	@JsonProperty("patient-name")
 	private String patientName;
-	
+
 	@JsonProperty("provider-id")
 	private UUID providerId;
-	
-	/* 
-	 * Use this to display provider name in list of treatments without N+1 problem.
-	 */
+
 	@JsonProperty("provider-name")
 	private String providerName;
-	
+
 	private String diagnosis;
-	
+
 	@JsonProperty("followup-treatments")
 	private Collection<TreatmentDto> followupTreatments;
 
@@ -84,15 +76,15 @@ public sealed abstract class TreatmentDto permits DrugTreatmentDto, Physiotherap
 	public void setDiagnosis(String diagnosis) {
 		this.diagnosis = diagnosis;
 	}
-	
+
 	public Collection<TreatmentDto> getFollowupTreatments() {
 		return followupTreatments;
 	}
-	
+
 	public void setFollowupTreatments(Collection<TreatmentDto> treatments) {
 		this.followupTreatments = treatments;
 	}
-	
+
 	public TreatmentDto() {
 		this.followupTreatments = new ArrayList<>();
 	}

@@ -1,9 +1,8 @@
 package edu.stevens.cs548.clinic.domain;
 
 import edu.stevens.cs548.clinic.domain.ITreatmentDao.TreatmentExn;
-import jakarta.persistence.NamedQueries;
-import jakarta.persistence.NamedQuery;
-import jakarta.persistence.Transient;
+import jakarta.persistence.*;
+
 import java.io.Serial;
 import java.io.Serializable;
 import java.time.LocalDate;
@@ -14,40 +13,29 @@ import java.util.UUID;
 import java.util.function.Consumer;
 
 /**
- * Entity implementation class for Entity: Patient
- *
+ * Entity implementation class for Entity: Provider
  */
 @NamedQueries({
-	@NamedQuery(
-		name="SearchProviderByProviderId",
-		query="select p from Provider p where p.id = :providerId"),
-	@NamedQuery(
-			name="SearchProviderWithTreatmentsByProviderId",
-			query="select p from Provider p left join fetch p.treatments where p.id = :providerId"),
-	@NamedQuery(
-		name="CountProviderByProviderId",
-		query="select count(p) from Provider p where p.id = :providerId"),
-	@NamedQuery(
-			name = "SearchAllProviders", 
-			query = "select p from Provider p"),
-	@NamedQuery(
-		name = "RemoveAllProviders", 
-		query = "delete from Provider p")
+		@NamedQuery(name = "SearchProviderByProviderId", query = "select p from Provider p where p.id = :providerId"),
+		@NamedQuery(name = "SearchProviderWithTreatmentsByProviderId", query = "select p from Provider p left join fetch p.treatments where p.id = :providerId"),
+		@NamedQuery(name = "CountProviderByProviderId", query = "select count(p) from Provider p where p.id = :providerId"),
+		@NamedQuery(name = "SearchAllProviders", query = "select p from Provider p"),
+		@NamedQuery(name = "RemoveAllProviders", query = "delete from Provider p")
 })
-// TODO
 
+@Entity
 public class Provider implements Serializable, ITreatmentImporter {
 
-    @Serial
-    private static final long serialVersionUID = -876909316791083094L;
+	@Serial
+	private static final long serialVersionUID = -876909316791083094L;
 
-    // TODO PK (Do NOT auto-generate)
-    private UUID id;
+	@Id
+	private UUID id;
 
 	private String npi;
 
 	private String name;
-	
+
 	public UUID getId() {
 		return id;
 	}
@@ -72,12 +60,12 @@ public class Provider implements Serializable, ITreatmentImporter {
 		this.name = name;
 	}
 
-	// TODO JPA annotations (propagate persist of provider to treatments)
+	@OneToMany(mappedBy = "provider", cascade = CascadeType.REMOVE)
 	private Collection<Treatment> treatments;
 
 	@Transient
 	private TreatmentFactory treatmentFactory;
-	
+
 	@Transient
 	private ITreatmentDao treatmentDao;
 
@@ -86,60 +74,39 @@ public class Provider implements Serializable, ITreatmentImporter {
 		treatments = new ArrayList<Treatment>();
 		treatmentFactory = new TreatmentFactory();
 	}
-	/*
-	 * Note: Why can't use dependency injection to inject the DAO?
-	 */
-	public void setTreatmentDao (ITreatmentDao tdao) {
+
+	public void setTreatmentDao(ITreatmentDao tdao) {
 		this.treatmentDao = tdao;
 	}
 
-	
-	/*
-	 * Addition and deletion of treatments should be done here.
-	 */
-	
 	public boolean administers(Treatment t) {
 		return treatments.contains(t);
 	}
 
-	/*
-	 * Export a treatment without violating Aggregate pattern.
-	 * Check that the exported treatment is a treatment for this provider.
-	 */
 	public <T> T exportTreatment(UUID tid, ITreatmentExporter<T> visitor) throws TreatmentExn {
 		Treatment t = treatmentDao.getTreatment(tid);
-		
 		if (t.getProvider() != this) {
 			throw new TreatmentExn("Inappropriate treatment access: provider = " + id + ", treatment = " + tid);
 		}
-
 		return t.export(visitor);
 	}
-	
-	/**
-	 * Map the treatment exporter over all of the treatments for this provider
-	 */
+
 	public <T> List<T> exportTreatments(ITreatmentExporter<T> visitor) throws TreatmentExn {
 		List<T> exports = new ArrayList<T>();
-		
 		for (Treatment t : treatments) {
 			exports.add(t.export(visitor));
 		}
-		
 		return exports;
 	}
 
-	private void addTreatment (Treatment t) {
+	private void addTreatment(Treatment t) {
 		treatments.add(t);
 		t.setProvider(this);
 	}
-	
+
 	@Override
-	public Consumer<Treatment> importtDrugTreatment(UUID tid, Patient patient, Provider provider, String diagnosis, String drug,
-			float dosage, LocalDate start, LocalDate end, int frequency, Consumer<Treatment> consumer) {
-		/*
-		 * Create the entity object.
-		 */
+	public Consumer<Treatment> importDrugTreatment(UUID tid, Patient patient, Provider provider, String diagnosis,
+			String drug, float dosage, LocalDate start, LocalDate end, int frequency, Consumer<Treatment> consumer) {
 		final DrugTreatment treatment = treatmentFactory.createDrugTreatment();
 		treatment.setId(tid);
 		treatment.setDiagnosis(diagnosis);
@@ -148,32 +115,20 @@ public class Provider implements Serializable, ITreatmentImporter {
 		treatment.setStartDate(start);
 		treatment.setEndDate(end);
 		treatment.setFrequency(frequency);
-		/*
-		 * NB for follow-up treatments, this may not be the current provider
-		 */
 		provider.addTreatment(treatment);
-		/*
-		 * NB for follow-up treatments, the patient will always be the same
-		 */
 		patient.addTreatment(treatment);
-		/*
-		 * Add to the database.
-		 */
 		treatmentDao.addTreatment(treatment);
-		/*
-		 * Add to parent follow-up treatments, if appropriate
-		 */
 		if (consumer != null) {
 			consumer.accept(treatment);
 		}
-		/*
-		 * Return our own consumer who will add follow-up treatments
-		 */
-		return (followUp) -> { treatment.addFollowupTreatment(followUp); };
+		return (followUp) -> {
+			treatment.addFollowupTreatment(followUp);
+		};
 	}
 
 	@Override
-	public Consumer<Treatment>  importRadiology(UUID tid, Patient patient, Provider provider, String diagnosis, List<LocalDate> dates, Consumer<Treatment> consumer) {
+	public Consumer<Treatment> importRadiology(UUID tid, Patient patient, Provider provider, String diagnosis,
+			List<LocalDate> dates, Consumer<Treatment> consumer) {
 		final RadiologyTreatment treatment = treatmentFactory.createRadiologyTreatment();
 		treatment.setId(tid);
 		treatment.setDiagnosis(diagnosis);
@@ -182,29 +137,32 @@ public class Provider implements Serializable, ITreatmentImporter {
 		}
 		provider.addTreatment(treatment);
 		patient.addTreatment(treatment);
-		/*
-		 * Add to the database.
-		 */
 		treatmentDao.addTreatment(treatment);
-		/*
-		 * Add to parent follow-up treatments, if appropriate
-		 */
 		if (consumer != null) {
 			consumer.accept(treatment);
 		}
-		/*
-		 * Return our own consumer who will add follow-up treatments
-		 */
-		return (followUp) -> { treatment.addFollowupTreatment(followUp); };
+		return (followUp) -> {
+			treatment.addFollowupTreatment(followUp);
+		};
 	}
 
 	@Override
-	public Consumer<Treatment> importSurgery(UUID tid, Patient patient, Provider provider, String diagnosis, LocalDate date,
-			String dischargeInstructions, Consumer<Treatment> consumer) {
+	public Consumer<Treatment> importSurgery(UUID tid, Patient patient, Provider provider, String diagnosis,
+			LocalDate date, String dischargeInstructions, Consumer<Treatment> consumer) {
 		final SurgeryTreatment treatment = treatmentFactory.createSurgeryTreatment();
-		// TODO finish this
-
-		// End TODO
+		treatment.setId(tid);
+		treatment.setDiagnosis(diagnosis);
+		treatment.setSurgeryDate(date);
+		treatment.setDischargeInstructions(dischargeInstructions);
+		provider.addTreatment(treatment);
+		patient.addTreatment(treatment);
+		treatmentDao.addTreatment(treatment);
+		if (consumer != null) {
+			consumer.accept(treatment);
+		}
+		return (followUp) -> {
+			treatment.addFollowupTreatment(followUp);
+		};
 	}
 
 	@Override
@@ -218,20 +176,13 @@ public class Provider implements Serializable, ITreatmentImporter {
 		}
 		provider.addTreatment(treatment);
 		patient.addTreatment(treatment);
-		/*
-		 * Add to the database.
-		 */
 		treatmentDao.addTreatment(treatment);
-		/*
-		 * Add to parent follow-up treatments, if appropriate
-		 */
 		if (consumer != null) {
 			consumer.accept(treatment);
 		}
-		/*
-		 * Return our own consumer who will add follow-up treatments
-		 */
-		return (followUp) -> { treatment.addFollowupTreatment(followUp); };
+		return (followUp) -> {
+			treatment.addFollowupTreatment(followUp);
+		};
 	}
-		
+
 }

@@ -73,7 +73,7 @@ public class ProviderMicroService {
 	@Context
 	UriInfo uriInfo;
 
-	@GET
+	@POST
 	@Consumes(MediaType.APPLICATION_JSON)
 	public Response addProvider(ProviderDto dto) {
 		// Use factory to create Provider entity, and persist with DAO

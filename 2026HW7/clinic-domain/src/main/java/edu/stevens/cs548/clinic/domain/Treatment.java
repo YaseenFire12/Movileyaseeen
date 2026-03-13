@@ -1,6 +1,7 @@
 package edu.stevens.cs548.clinic.domain;
 
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Inheritance;
 import jakarta.persistence.InheritanceType;
@@ -18,39 +19,28 @@ import java.util.UUID;
 import static jakarta.persistence.CascadeType.ALL;
 import static jakarta.persistence.FetchType.EAGER;
 
-
 /**
  * Entity implementation class for Entity: Treatment
- *
  */
 @NamedQueries({
-	@NamedQuery(
-		name="SearchTreatmentByTreatmentId",
-		query="select t from Treatment t where t.id = :treatmentId"),
-	@NamedQuery(
-			name="SearchTreatmentWithFollowupsByTreatmentId",
-			query="select t from Treatment t left join fetch t.followupTreatments where t.id = :treatmentId"),
-	@NamedQuery(
-			name="CountTreatmentByTreatmentId",
-			query="select count(t) from Treatment t where t.id = :treatmentId"),
-	@NamedQuery(
-		name = "RemoveAllTreatments", 
-		query = "delete from Treatment t")
+		@NamedQuery(name = "SearchTreatmentByTreatmentId", query = "select t from Treatment t where t.id = :treatmentId"),
+		@NamedQuery(name = "SearchTreatmentWithFollowupsByTreatmentId", query = "select t from Treatment t left join fetch t.followupTreatments where t.id = :treatmentId"),
+		@NamedQuery(name = "CountTreatmentByTreatmentId", query = "select count(t) from Treatment t where t.id = :treatmentId"),
+		@NamedQuery(name = "RemoveAllTreatments", query = "delete from Treatment t")
 })
 
-// TODO
-
+@Entity
+@Inheritance(strategy = InheritanceType.JOINED)
 public abstract class Treatment implements Serializable {
 
-    @Serial
-    private static final long serialVersionUID = 1L;
+	@Serial
+	private static final long serialVersionUID = 1L;
 
-    // TODO PK (Do NOT auto-generate)
-    protected UUID id;
+	@Id
+	protected UUID id;
 
 	protected String diagnosis;
-	
-	
+
 	public UUID getId() {
 		return id;
 	}
@@ -67,48 +57,40 @@ public abstract class Treatment implements Serializable {
 		this.diagnosis = diagnosis;
 	}
 
-	/*
-	 * TODO
-	 */
+	@ManyToOne(fetch = FetchType.LAZY)
 	protected Patient patient;
 
 	public Patient getPatient() {
 		return patient;
 	}
 
-	
 	void setPatient(Patient patient) {
 		this.patient = patient;
 	}
 
-	/*
-	 * TODO
-	 */
+	@ManyToOne(fetch = FetchType.LAZY)
 	protected Provider provider;
 
 	public Provider getProvider() {
 		return provider;
-	}	
-	
+	}
+
 	public void setProvider(Provider provider) {
 		this.provider = provider;
-	}	
-	
-	/*
-	 * TODO
-	 */
+	}
+
+	@OneToMany(cascade = ALL, fetch = EAGER)
 	protected Collection<Treatment> followupTreatments;
-	
+
 	public void addFollowupTreatment(Treatment t) {
 		followupTreatments.add(t);
 	}
-
 
 	/*
 	 * We use the visitor pattern to access a treatment.
 	 */
 	public abstract <T> T export(ITreatmentExporter<T> visitor);
-	
+
 	protected final <T> List<T> exportFollowupTreatments(ITreatmentExporter<T> visitor) {
 		List<T> exports = new ArrayList<T>();
 		for (Treatment t : followupTreatments) {
@@ -117,11 +99,8 @@ public abstract class Treatment implements Serializable {
 		return exports;
 	}
 
-	
 	public Treatment() {
 		super();
-		/*
-		 * TODO initialize lists
-		 */
+		followupTreatments = new ArrayList<>();
 	}
 }
