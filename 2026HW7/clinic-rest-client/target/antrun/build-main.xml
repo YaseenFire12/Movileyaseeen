@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="maven-antrun-" default="main">
+  <target name="main">
+    <delete file="C:\Users\Chawi/tmp/cs548/clinic-rest-client.jar" />
+    <copy file="C:\Users\Chawi\Desktop\transfer_shared\2026Spring\Enterprise Solutions\Homework\Week7\Assignment-Code\clinic-rest-client\target/clinic-rest-client-1.0.0-jar-with-dependencies.jar" tofile="C:\Users\Chawi/tmp/cs548/clinic-rest-client.jar" />
+  </target>
+</project>

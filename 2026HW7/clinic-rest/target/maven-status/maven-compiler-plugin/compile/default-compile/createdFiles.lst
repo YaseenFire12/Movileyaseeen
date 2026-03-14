@@ -1,0 +1,5 @@
+edu\stevens\cs548\clinic\rest\PatientResource.class
+edu\stevens\cs548\clinic\rest\CustomObjectMapper.class
+edu\stevens\cs548\clinic\rest\ProviderResource.class
+edu\stevens\cs548\clinic\rest\AppConfig.class
+edu\stevens\cs548\clinic\rest\ResourceBase.class

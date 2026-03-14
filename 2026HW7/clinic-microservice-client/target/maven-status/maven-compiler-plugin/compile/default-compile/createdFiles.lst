@@ -1,0 +1,6 @@
+edu\stevens\cs548\clinic\micro\domain\IPatientMicroService.class
+edu\stevens\cs548\clinic\micro\domain\IProviderMicroService.class
+edu\stevens\cs548\clinic\micro\domain\ProviderResponseExceptionMapper.class
+edu\stevens\cs548\clinic\micro\domain\stub\PatientService.class
+edu\stevens\cs548\clinic\micro\domain\PatientResponseExceptionMapper.class
+edu\stevens\cs548\clinic\micro\domain\stub\ProviderService.class

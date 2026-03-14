@@ -1,0 +1,3 @@
+edu\stevens\cs548\clinic\rest\client\App.class
+edu\stevens\cs548\clinic\rest\client\stub\IServerApi.class
+edu\stevens\cs548\clinic\rest\client\stub\WebClient.class
