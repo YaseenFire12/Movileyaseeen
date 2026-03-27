@@ -1,0 +1,9 @@
+package edu.stevens.cs548.clinic.micro.domain.rest;
+
+import jakarta.ws.rs.ApplicationPath;
+import jakarta.ws.rs.core.Application;
+
+
+@ApplicationPath("/api")
+public class AppConfig extends Application {
+}

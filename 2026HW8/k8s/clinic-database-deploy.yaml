@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: clinic-database
+  labels:
+    app: clinic-database
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: clinic-database
+  template:
+    metadata:
+      labels:
+        app: clinic-database
+    spec:
+      restartPolicy: Always
+      containers:
+      - name: clinic-database
+        image: cs548/clinic-database
+        env:
+        - name: POSTGRES_PASSWORD
+          value: abc123
+        - name: PGDATA
+          value: /var/lib/postgresql/data/pgdata
+        - name: DATABASE_PASSWORD
+          value: clinic456
+        imagePullPolicy: Never

@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: clinic-domain
+  labels:
+    app: clinic-domain
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: clinic-domain
+  template:
+    metadata:
+      labels:
+        app: clinic-domain
+    spec:
+      restartPolicy: Always
+      containers:
+      - name: clinic-domain
+        image: cs548/clinic-domain:1.0.0
+        env:
+        - name: QUARKUS_DATASOURCE_USERNAME
+          value: clinicuser
+        - name: QUARKUS_DATASOURCE_PASSWORD
+          value: clinic456
+        imagePullPolicy: Never
