@@ -22,7 +22,6 @@ import java.util.List;
 import org.jboss.logging.Logger;
 
 @Singleton
-// TODO add annotations
 public class DocTools {
 
     @Inject
@@ -31,14 +30,17 @@ public class DocTools {
     @Inject
     Logger logger;
 
-    ToolResponse readDocument(String docId) {
+    @Tool(description = "Read the contents of a document and return it as a string.")
+    ToolResponse readDocument(@ToolArg(description = "Id of the document to read") String docId) {
         logger.infof("Reading document %s", docId);
         return ToolResponse.success(new TextContent(docService.getDocument(docId)));
     }
 
-    ToolResponse editDocument(String docId,
-                              String oldStr,
-                              String newStr) {
+    @Tool(description = "Edit a document by replacing a string in the documents content with a new string")
+    ToolResponse editDocument(
+            @ToolArg(description = "Id of the document that will be edited") String docId,
+            @ToolArg(description = "The text to replace. Must match exactly, including whitespace") String oldStr,
+            @ToolArg(description = "The new text to insert in place of the old text") String newStr) {
         logger.infof("Editing document %s", docId);
         String content = docService.editDocument(docId, oldStr, newStr);
         if (content == null) {
@@ -47,12 +49,14 @@ public class DocTools {
         return ToolResponse.success();
     }
 
+    @Resource(uri = "doc://contents")
     List<String> documents() {
         logger.infof("Listing resource of all documents");
         return docService.listDocuments();
     }
 
-    TextResourceContents dpcument(String name, RequestUri uri) {
+    @ResourceTemplate(uriTemplate = "doc://contents/{name}")
+    TextResourceContents document(String name, RequestUri uri) {
         logger.infof("Reading document resource %s", name);
         String content = docService.getDocument(name);
         if (content == null) {
@@ -61,13 +65,16 @@ public class DocTools {
         return TextResourceContents.create(uri.value(), content);
     }
 
-    PromptMessage format(String docId) {
+    @Prompt(description = "Rewrites the contents of the document in Markdown format.")
+    PromptMessage format(@PromptArg(name = "doc_id", description = "The name of the document.") String docId) {
         logger.infof("Formatting document %s", docId);
-        return PromptMessage.withUserRole(new TextContent(docService.formatPrompt()));
+        return PromptMessage.withUserRole(new TextContent(docService.formatPrompt().replace("{docId}", docId)));
+
     }
 
-    PromptMessage summarize(String docId) {
+    @Prompt(description = "Summarizes the content of the document.")
+    PromptMessage summarize(@PromptArg(name = "doc_id", description = "The name of the document.") String docId) {
         logger.infof("Summarizing document %s", docId);
-        return PromptMessage.withUserRole(new TextContent(docService.summarizePrompt()));
+        return PromptMessage.withUserRole(new TextContent(docService.summarizePrompt().replace("{docId}", docId)));
     }
 }

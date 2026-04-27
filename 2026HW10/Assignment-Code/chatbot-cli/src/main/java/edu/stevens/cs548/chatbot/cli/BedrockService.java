@@ -93,9 +93,38 @@ public class BedrockService {
         StopReason stopReason = null;
         StringBuilder text = new StringBuilder();  // to collapse result content to single string
 
-        // TODO invoke the model via the Converse API
+        ConverseRequest.Builder requestBuilder = ConverseRequest.builder()
+                .modelId(modelId)
+                .messages(messages)
+                .inferenceConfig(cfg -> cfg.temperature(temperature));
 
-        // End TODO
+        if (system != null && !system.isBlank()) {
+            requestBuilder.system(SystemContentBlock.fromText(system));
+        }
+
+        if (tools != null && !tools.isEmpty()) {
+            ToolChoice choice = switch (toolChoice) {
+                case "any" -> ToolChoice.fromAny(AnyToolChoice.builder().build());
+                case "auto" -> ToolChoice.fromAuto(AutoToolChoice.builder().build());
+                default -> ToolChoice.fromTool(SpecificToolChoice.builder().name(toolChoice).build());
+            };
+            requestBuilder.toolConfig(
+                    ToolConfiguration.builder()
+                            .tools(tools)
+                            .toolChoice(choice)
+                            .build());
+        }
+
+        ConverseResponse response = client.converse(requestBuilder.build());
+        parts = response.output().message().content();
+        stopReason = response.stopReason();
+
+        for (ContentBlock block : parts) {
+            if (block.text() != null) {
+                if (!text.isEmpty()) text.append("\n");
+                text.append(block.text());
+            }
+        }
 
         return new ChatResponse(parts, stopReason, text.toString());
     }

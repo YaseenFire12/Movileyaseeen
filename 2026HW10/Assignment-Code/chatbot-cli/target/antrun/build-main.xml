@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="maven-antrun-" default="main">
+  <target name="main">
+    <delete file="C:\Users\Chawi/tmp/cs548/chatcli.jar" />
+    <copy file="C:\Users\Chawi\Desktop\transfer_shared\2026Spring\Enterprise Solutions\Homework\Week10\Assignment-Code\chatbot-cli\target/chat-bot-1.0-SNAPSHOT.jar" tofile="C:\Users\Chawi/tmp/cs548/chatcli.jar" />
+  </target>
+</project>

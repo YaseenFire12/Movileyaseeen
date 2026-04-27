@@ -56,8 +56,16 @@ public class Client implements Closeable {
     }
 
     public void connect() throws IOException {
-        // TODO connect to the server and initialize the connection
-
+        McpClientTransport transport = HttpClientStreamableHttpTransport
+                .builder(baseUrl)
+                .endpoint(SERVER_ENDPOINT)
+                .build();
+        client = McpClient.sync(transport)
+                .requestTimeout(Duration.ofSeconds(10))
+                .capabilities(ClientCapabilities.builder()
+                        .build())
+                .build();
+        client.initialize();
     }
 
     public List<Tool> listTools() {

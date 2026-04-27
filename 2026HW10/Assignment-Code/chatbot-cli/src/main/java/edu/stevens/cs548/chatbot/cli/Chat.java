@@ -5,6 +5,8 @@ import java.util.List;
 import software.amazon.awssdk.services.bedrockruntime.model.ContentBlock;
 import software.amazon.awssdk.services.bedrockruntime.model.Message;
 import software.amazon.awssdk.services.bedrockruntime.model.StopReason;
+import software.amazon.awssdk.services.bedrockruntime.model.ContentBlock;
+
 
 /**
  * Maintains the running conversation and drives the tool-use loop:
@@ -45,10 +47,9 @@ public class Chat {
         while (true) {
 
             BedrockService.ChatResponse response = null;
-            // TODO perform one query on the model using Bedrock
+            response = bedrockService.chat(messages, BedrockService.toBedrockTools(client.listTools()));
 
-
-            // TODO Add the assistant turn to history
+            bedrockService.addAssistantMessage(messages, response.parts());
 
             if (StopReason.TOOL_USE.equals(response.stopReason())) {
                 client.getLogger().info("The model has requested the use of some tools.");
@@ -58,9 +59,8 @@ public class Chat {
                     App.msgln(response.text());
                 }
 
-                // TODO Execute every tool the model requested
-
-                // TODO Feed results back as the next user turn
+                List<ContentBlock> results = ToolManager.executeToolRequests(client, response.parts());
+                bedrockService.addUserMessage(messages, results);
 
             } else {
                 finalTextResponse = response.text();

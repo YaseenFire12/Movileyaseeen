@@ -1,0 +1,10 @@
+edu\stevens\cs548\chatbot\cli\BedrockService.class
+edu\stevens\cs548\chatbot\cli\App.class
+edu\stevens\cs548\chatbot\cli\CliApp$McpCompleter.class
+edu\stevens\cs548\chatbot\cli\ILogger.class
+edu\stevens\cs548\chatbot\cli\ToolManager.class
+edu\stevens\cs548\chatbot\cli\Chat.class
+edu\stevens\cs548\chatbot\cli\BedrockService$ChatResponse.class
+edu\stevens\cs548\chatbot\cli\CliApp.class
+edu\stevens\cs548\chatbot\cli\Client.class
+edu\stevens\cs548\chatbot\cli\CliChat.class

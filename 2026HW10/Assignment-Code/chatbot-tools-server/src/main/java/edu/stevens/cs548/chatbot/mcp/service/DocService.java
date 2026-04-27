@@ -65,9 +65,16 @@ public class DocService {
         return FORMAT_PROMPT;
     }
 
-    // TODO Write a prompt to summarize a doc
     private static final String SUMMARIZE_PROMPT = """
-            """;
+        Your goal is to summarize the contents of a document.
+        
+        The id of the document you need to summarize is:
+        <documentId>
+        {docId}
+        </documentId>
+        
+        Read the document using the 'readDocument' tool, then provide a clear and concise summary of its contents. Focus on the key points and main ideas.
+        """;
 
     public String summarizePrompt() {
         return SUMMARIZE_PROMPT;

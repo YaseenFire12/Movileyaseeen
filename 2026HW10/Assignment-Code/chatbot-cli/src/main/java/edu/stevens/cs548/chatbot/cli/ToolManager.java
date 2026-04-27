@@ -33,9 +33,24 @@ public class ToolManager {
 
         List<ContentBlock> results = new ArrayList<>();
 
-        // TODO execute the tool requests and gather results
+        for (ContentBlock part : parts) {
+            if (part.toolUse() != null) {
+                ToolUseBlock toolUse = part.toolUse();
+                String toolUseId = toolUse.toolUseId();
+                String toolName = toolUse.name();
+                Map<String, Object> toolInput = extractInput(toolUse);
 
-        // End TODO
+                try {
+                    CallToolResult toolOutput = client.callTool(toolName, toolInput);
+                    List<ToolResultContentBlock> partResult = extractContentText(toolOutput);
+                    results.add(buildToolResult(toolUseId, partResult, toolOutput.isError()));
+                } catch (Exception e) {
+                    String errorMsg = "Error executing tool " + toolName + ": " + e.getMessage();
+                    App.err(errorMsg);
+                    results.add(buildToolResult(toolUseId, List.of(ToolResultContentBlock.fromText(errorMsg)), true));
+                }
+            }
+        }
 
         return results;
     }
